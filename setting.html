@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #f5f7fa;
+}
+
+/* HEADER */
+.topbar {
+  background: #2b95d6;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  color: white;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+/* CONTAINER */
+.container {
+  max-width: 700px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
+
+/* CARD */
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* PROFILE */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.profile-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #ddd;
+}
+
+.profile-header h3 {
+  margin-bottom: 5px;
+}
+
+/* FORM */
+h2 {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+}
+
+input:focus {
+  border-color: #2b95d6;
+}
+
+/* BUTTON */
+button {
+  margin-top: 20px;
+  background: #5a67d8;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+#msg {
+  margin-top: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="topbar">
+  <div class="logo">PMF</div>
+  <div>
+    <span id="loggedAgentName">Agent Name</span>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="container">
+  <div class="card">
+
+    <!-- PROFILE INFO -->
+    <div class="profile-header">
+      <div class="profile-img"></div>
+      <div>
+        <h3><span id="loggedAgentName2">Agent Name</span></h3>
+        <p>Role: Agent</p>
+        <p>Join Date: 21-08-2024</p>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <h2>Change Password</h2>
+
+    <label>Old Password</label>
+    <input type="password" id="oldPass">
+
+    <label>New Password</label>
+    <input type="password" id="newPass">
+
+    <label>Confirm Password</label>
+    <input type="password" id="confirmPass">
+
+    <button onclick="changePassword()">Change Password</button>
+
+    <p id="msg"></p>
+
+  </div>
+</div>
+
+<script>
+async function changePassword() {
+  const oldPass = document.getElementById("oldPass").value;
+  const newPass = document.getElementById("newPass").value;
+  const confirmPass = document.getElementById("confirmPass").value;
+  const msg = document.getElementById("msg");
+
+  if (!oldPass || !newPass || !confirmPass) {
+    msg.innerHTML = "<span style='color:red;'>Fill all fields</span>";
+    return;
+  }
+
+  if (newPass !== confirmPass) {
+    msg.innerHTML = "<span style='color:red;'>Passwords do not match</span>";
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        oldPassword: oldPass,
+        newPassword: newPass
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      msg.innerHTML = "<span style='color:green;'>Password changed successfully</span>";
+    } else {
+      msg.innerHTML = "<span style='color:red;'>Wrong old password</span>";
+    }
+
+  } catch (err) {
+    msg.innerHTML = "<span style='color:red;'>Server error</span>";
+  }
+}
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const agent = JSON.parse(localStorage.getItem("agentData"));
+
+  if (agent && agent.name) {
+    const el1 = document.getElementById("loggedAgentName");
+    const el2 = document.getElementById("loggedAgentName2");
+
+    if (el1) el1.textContent = agent.name;
+    if (el2) el2.textContent = agent.name;
+  }
+});
+</script>
+
+</body>
+</html>

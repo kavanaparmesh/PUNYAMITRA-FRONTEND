@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIP Status</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+/* HEADER */
+.topbar {
+  background: #2b95d6;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  color: white;
+}
+
+.logo { font-weight: bold; }
+.user { font-size: 14px; }
+
+/* BODY */
+body { background: #f5f7fa; }
+
+/* CONTAINER */
+.container {
+  margin: 20px;
+}
+
+/* CARD */
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+/* CONTROLS */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #f1f1f1;
+}
+
+/* PAGINATION */
+.pagination {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+button {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="topbar">
+  <div class="logo">PMF</div>
+  <div><span id="loggedAgentName">Agent Name</span></div>
+</div>
+
+<!-- CONTENT -->
+<div class="container">
+
+  <div class="card">
+
+    <!-- CONTROLS -->
+    <div class="controls">
+      <div>Show 10 entries</div>
+      <div>Search: <input type="text"></div>
+    </div>
+
+    <!-- TABLE -->
+    <table>
+      <tr>
+        <th>#</th>
+        <th>SIP Amount</th>
+        <th>Date</th>
+      </tr>
+
+      <tr>
+        <td colspan="3" style="text-align:center;color:gray;">
+          No data available in table
+        </td>
+      </tr>
+    </table>
+
+    <!-- PAGINATION -->
+    <div class="pagination">
+      <div>Showing 0 to 0 of 0 entries</div>
+      <div>
+        <button>Previous</button>
+        <button>Next</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const agent = JSON.parse(localStorage.getItem("agentData"));
+
+  if (agent && agent.name) {
+    const el = document.getElementById("loggedAgentName");
+    if (el) el.textContent = agent.name;
+  }
+});
+</script>
+</body>
+</html>

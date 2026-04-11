@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Profile</title>
+<style>
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#f3f4f8;
+    padding:30px;
+}
+.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+.user{
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+.user img{
+    width:80px;
+    height:80px;
+    border-radius:50%;
+    object-fit:cover;
+}
+.buttons{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+.btn{
+    padding:12px 20px;
+    color:white;
+    border-radius:6px;
+    text-decoration:none;
+}
+.blue{background:#2196f3;}
+.dark{background:#1976d2;}
+.green{background:#2ecc71;}
+
+.profile-box{
+    background:white;
+    padding:30px;
+    border-radius:20px;
+}
+.grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:25px;
+}
+.item label{
+    display:block;
+    font-size:16px;
+    margin-bottom:8px;
+    font-weight:bold;
+}
+.item input{
+    width:100%;
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:15px;
+}
+.virtual-btn{
+    display:inline-block;
+    margin-top:30px;
+    padding:12px 20px;
+    background:#2196f3;
+    color:white;
+    text-decoration:none;
+    border-radius:6px;
+}
+@media(max-width:768px){
+    .grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+    <div class="user">
+        <img src="student-photo.jpg" alt="student">
+        <div>
+            <h2><input type="text" value=></h2>
+            <p>Account No: <input type="text" value=></p>
+            <p>Enroll Date: <input type="text" value=></p>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <a href="#" class="btn blue">Photo Upload</a>
+        <a href="#" class="btn dark">Edit Details</a>
+        <a href="#" class="btn green">Bank Details</a>
+    </div>
+</div>
+
+<div class="profile-box">
+    <div class="grid">
+        <div class="item"><label>Aadhar No</label><input type="text" value></div>
+        <div class="item"><label>Student Name</label><input type="text" value=></div>
+        <div class="item"><label>Father Name</label><input type="text" value=></div>
+        <div class="item"><label>Mother Name</label><input type="text" value=></div>
+        <div class="item"><label>Gender</label><input type="text" value=></div>
+        <div class="item"><label>Date of Birth</label><input type="date" value=></div>
+        <div class="item"><label>School Name</label><input type="text" value=></div>
+        <div class="item"><label>Area Type</label><input type="text" value=></div>
+        <div class="item"><label>Mobile</label><input type="text" value=></div>
+        <div class="item"><label>Email</label><input type="email" value=></div>
+        <div class="item"><label>Village/Town</label><input type="text" value=></div>
+        <div class="item"><label>Pin Code</label><input type="text" value=></div>
+        <div class="item"><label>District</label><input type="text" value=></div>
+        <div class="item"><label>State</label><input type="text" value=></div>
+    </div>
+
+    <a href="#" class="virtual-btn">Virtual Card</a>
+</div>
+
+</body>
+</html>

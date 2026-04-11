@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #f5f7fa;
+}
+
+/* HEADER */
+.topbar {
+  background: #2b95d6;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  color: white;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+/* CONTAINER */
+.container {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
+
+/* PROFILE CARD */
+.profile-card {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* HEADER SECTION */
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 20px;
+}
+
+.profile-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.profile-img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: #ddd;
+}
+
+/* BUTTONS */
+.profile-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.profile-buttons button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 6px;
+  background: #2b95d6;
+  color: white;
+  cursor: pointer;
+}
+
+/* DETAILS GRID */
+.details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-top: 25px;
+}
+
+.label {
+  font-weight: bold;
+  color: #555;
+  margin-top: 15px;
+}
+
+.value {
+  margin-top: 5px;
+  color: #222;
+  line-height: 1.5;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="topbar">
+  <div class="logo">PMF</div>
+  <div>
+    <span id="loggedAgentNameTop">Agent Name</span>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="container">
+  <div class="profile-card">
+
+    <!-- TOP -->
+    <div class="profile-header">
+      <div class="profile-left">
+        <div class="profile-img"></div>
+
+        <div>
+          <h2><span id="loggedAgentNameProfile">Agent Name</span></h2>
+          <p>Role: Agent</p>
+          <p>Join Date: 21-08-2024 15:28:33</p>
+        </div>
+      </div>
+
+      <div class="profile-buttons">
+        <button>Profile Photo</button>
+        <button>Authorization Letter</button>
+        <button>ID Card</button>
+      </div>
+    </div>
+
+    <!-- DETAILS -->
+   <div class="details">
+  <div>
+    <div class="label">Mobile</div>
+    <div class="value" id="mobile">-</div>
+
+    <div class="label">Working Area</div>
+    <div class="value" id="workingArea">-</div>
+
+    <div class="label">Pin code</div>
+    <div class="value" id="pincode">-</div>
+
+    <div class="label">District</div>
+    <div class="value" id="district">-</div>
+
+    <div class="label">Aadhar No</div>
+    <div class="value" id="aadhar">-</div>
+  </div>
+
+  <div>
+    <div class="label">Email</div>
+    <div class="value" id="email">-</div>
+
+    <div class="label">Address</div>
+    <div class="value" id="address">-</div>
+
+    <div class="label">State</div>
+    <div class="value" id="state">-</div>
+
+    <div class="label">Supervisor</div>
+    <div class="value" id="supervisor">-</div>
+
+    <div class="label">Pan No</div>
+    <div class="value" id="pan">-</div>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const agent = JSON.parse(localStorage.getItem("agentData"));
+
+  if (agent && agent.name) {
+    const topName = document.getElementById("loggedAgentNameTop");
+    const profileName = document.getElementById("loggedAgentNameProfile");
+
+    if (topName) topName.textContent = agent.name;
+    if (profileName) profileName.textContent = agent.name;
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Complete Profile</title>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:Arial; }
+body { background:#f5f7fa; }
+
+/* HEADER */
+.topbar {
+  background:#2b95d6;
+  height:60px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 20px;
+  color:white;
+}
+
+/* CONTAINER */
+.container { margin:20px; }
+
+.card {
+  background:white;
+  padding:20px;
+  border-radius:8px;
+  margin-bottom:20px;
+}
+
+/* GRID */
+.grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+}
+
+input, select {
+  width:100%;
+  padding:10px;
+  border:1px solid #ccc;
+  border-radius:4px;
+}
+
+/* BUTTON */
+button {
+  background:#28a745;
+  color:white;
+  border:none;
+  padding:10px 20px;
+  border-radius:4px;
+  cursor:pointer;
+  margin-right:10px;
+}
+
+.step { display:none; }
+.step.active { display:block; }
+
+.summary-box {
+  border:1px solid #ddd;
+  padding:10px;
+  border-radius:6px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div>PMF</div>
+  <div><span id="loggedAgentName">Agent Name</span></div>
+</div>
+
+<div class="container">
+<div class="card animate-card">
+
+<p>For our Associate Personal Accidental Insurance 1 Lakh INR, Hospicash 60000 INR, Term Insurance 1 Lakh and SIP monthly 500 INR</p>
+
+<!-- STEP 1 -->
+<div class="step active" id="step1">
+<h3>Associate Details</h3>
+<div class="grid">
+<input id="name" placeholder="Name">
+<input id="father" placeholder="Father Name">
+<input id="dob" type="date">
+<input placeholder="Pin Code">
+<input placeholder="Address">
+<select><option>KARNATAKA</option></select>
+<input id="mobile" placeholder="Mobile">
+<input placeholder="Email">
+</div>
+<br>
+<button onclick="nextStep(2)">Next</button>
+</div>
+
+<!-- STEP 2 -->
+<div class="step" id="step2">
+<h3>Nominee Details</h3>
+<div class="grid">
+<input id="nominee" placeholder="Nominee Name">
+<select id="relation">
+<option>Wife</option>
+<option>Father</option>
+<option>Mother</option>
+</select>
+<input id="nomdob" type="date">
+<input placeholder="Nominee Contact">
+</div>
+<br>
+<button onclick="nextStep(1)">Back</button>
+<button onclick="nextStep(3)">Next</button>
+</div>
+
+<!-- STEP 3 -->
+<div class="step" id="step3">
+<h3>Bank Details</h3>
+<div class="grid">
+<input id="acc" placeholder="Account No">
+<input id="ifsc" placeholder="IFSC">
+<select><option>--Select Bank--</option></select>
+<input id="bankname" placeholder="Name in Bank">
+</div>
+<br>
+<button onclick="nextStep(2)">Back</button>
+<button onclick="nextStep(4)">Next</button>
+</div>
+
+<!-- STEP 4 -->
+<div class="step" id="step4">
+<h3>Documents</h3>
+<div class="grid">
+<input type="file">
+<input type="file">
+<input type="file">
+<input type="file">
+</div>
+<br>
+<button onclick="nextStep(3)">Back</button>
+<button onclick="generateSummary()">Next</button>
+</div>
+
+<!-- STEP 5 SUMMARY -->
+<div class="step" id="step5">
+<h3>Summary</h3>
+
+<div class="grid">
+
+<div class="summary-box">
+<h4>Personal</h4>
+<p id="s_name"></p>
+<p id="s_father"></p>
+<p id="s_dob"></p>
+<p id="s_mobile"></p>
+<button onclick="nextStep(1)">Edit</button>
+</div>
+
+<div class="summary-box">
+<h4>Nominee</h4>
+<p id="s_nominee"></p>
+<p id="s_relation"></p>
+<p id="s_nomdob"></p>
+<button onclick="nextStep(2)">Edit</button>
+</div>
+
+<div class="summary-box">
+<h4>Bank</h4>
+<p id="s_acc"></p>
+<p id="s_ifsc"></p>
+<p id="s_bankname"></p>
+<button onclick="nextStep(3)">Edit</button>
+</div>
+
+</div>
+
+<br>
+<button onclick="submitForm()">Final Submit</button>
+</div>
+
+<!-- FINAL VIEW -->
+<div class="step" id="finalView">
+
+<h2>Profile Details</h2>
+
+<table border="1" width="100%" cellpadding="10">
+<tr><th colspan="2">Personal Details</th></tr>
+<tr><td>Name</td><td id="f_name"></td></tr>
+<tr><td>Father</td><td id="f_father"></td></tr>
+<tr><td>DOB</td><td id="f_dob"></td></tr>
+<tr><td>Mobile</td><td id="f_mobile"></td></tr>
+
+<tr><th colspan="2">Nominee Details</th></tr>
+<tr><td>Name</td><td id="f_nominee"></td></tr>
+<tr><td>Relation</td><td id="f_relation"></td></tr>
+<tr><td>DOB</td><td id="f_nomdob"></td></tr>
+
+<tr><th colspan="2">Bank Details</th></tr>
+<tr><td>Account</td><td id="f_acc"></td></tr>
+<tr><td>IFSC</td><td id="f_ifsc"></td></tr>
+<tr><td>Name</td><td id="f_bankname"></td></tr>
+
+<tr><th colspan="2">Documents</th></tr>
+<tr><td>Aadhar</td><td>Uploaded</td></tr>
+<tr><td>PAN</td><td>Uploaded</td></tr>
+</table>
+
+</div>
+
+</div>
+</div>
+
+<script>
+function nextStep(step) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step'+step).classList.add('active');
+}
+
+function generateSummary() {
+  document.getElementById('s_name').innerText = "Name: " + document.getElementById('name').value;
+  document.getElementById('s_father').innerText = "Father: " + document.getElementById('father').value;
+  document.getElementById('s_dob').innerText = "DOB: " + document.getElementById('dob').value;
+  document.getElementById('s_mobile').innerText = "Mobile: " + document.getElementById('mobile').value;
+
+  document.getElementById('s_nominee').innerText = "Name: " + document.getElementById('nominee').value;
+  document.getElementById('s_relation').innerText = "Relation: " + document.getElementById('relation').value;
+  document.getElementById('s_nomdob').innerText = "DOB: " + document.getElementById('nomdob').value;
+
+  document.getElementById('s_acc').innerText = "Account: " + document.getElementById('acc').value;
+  document.getElementById('s_ifsc').innerText = "IFSC: " + document.getElementById('ifsc').value;
+  document.getElementById('s_bankname').innerText = "Name: " + document.getElementById('bankname').value;
+
+  nextStep(5);
+}
+
+function submitForm() {
+
+  document.getElementById('f_name').innerText = document.getElementById('name').value;
+  document.getElementById('f_father').innerText = document.getElementById('father').value;
+  document.getElementById('f_dob').innerText = document.getElementById('dob').value;
+  document.getElementById('f_mobile').innerText = document.getElementById('mobile').value;
+
+  document.getElementById('f_nominee').innerText = document.getElementById('nominee').value;
+  document.getElementById('f_relation').innerText = document.getElementById('relation').value;
+  document.getElementById('f_nomdob').innerText = document.getElementById('nomdob').value;
+
+  document.getElementById('f_acc').innerText = document.getElementById('acc').value;
+  document.getElementById('f_ifsc').innerText = document.getElementById('ifsc').value;
+  document.getElementById('f_bankname').innerText = document.getElementById('bankname').value;
+
+  nextStep('finalView');
+}
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const agent = JSON.parse(localStorage.getItem("agentData"));
+
+  if (agent && agent.name) {
+    const el = document.getElementById("loggedAgentName");
+    if (el) el.textContent = agent.name;
+  }
+});
+</script>
+
+</body>
+</html>

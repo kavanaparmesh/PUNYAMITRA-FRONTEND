@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Select Role - PMF</title>
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background: #f5f7fa;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  padding: 20px;
+}
+.container{
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.card{
+  width: 300px;
+  background: white;
+  padding: 35px 25px;
+  border-radius: 24px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+}
+.card:hover {
+  transform: translateY(-5px);
+}
+.card h2 {
+  margin-bottom: 10px;
+  color: #1e2d3c;
+}
+.card p {
+  color: #5a6e7c;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+.btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 15px;
+}
+button, .btn-dash {
+  background: #0b4f3c;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: 0.2s;
+  text-decoration: none;
+  display: inline-block;
+}
+button:hover, .btn-dash:hover {
+  background: #146b50;
+  transform: scale(1.02);
+}
+.btn-dash {
+  background: #2c7a5e;
+  border: 1px solid #d0e6dd;
+}
+.btn-dash:hover {
+  background: #0b4f3c;
+}
+hr {
+  margin: 20px 0 10px;
+  border: none;
+  border-top: 1px solid #e2e8f0;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Student Card -->
+  <div class="card">
+    <h2>🎓 Student</h2>
+    <p>Student Registration Flow</p>
+    <div class="btn-group">
+      <button onclick="location.href='student-register.html'">Open Registration</button>
+      <hr>
+      <a href="javascript:void(0)" class="btn-dash" id="studentDashboardBtn">📊 View Dashboard</a>
+    </div>
+  </div>
+
+  <!-- Farmer Card -->
+  <div class="card">
+    <h2>🌾 Farmer</h2>
+    <p>Farmer Registration Flow</p>
+    <div class="btn-group">
+      <button onclick="location.href='farmer-register.html'">Open Registration</button>
+      <hr>
+      <a href="javascript:void(0)" class="btn-dash" id="farmerDashboardBtn">📊 View Dashboard</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// Check login status and redirect to dashboard or login page
+function checkAndGoToDashboard(role) {
+  const agentId = localStorage.getItem("agentId");
+  if (!agentId) {
+    alert("Please login as Agent first.");
+    window.location.href = "agent-login.html";
+    return;
+  }
+  // role: 'student' or 'farmer'
+  if (role === 'student') {
+    window.location.href = "student-dashboard.html";
+  } else if (role === 'farmer') {
+    window.location.href = "farmer-dashboard.html";
+  }
+}
+
+document.getElementById("studentDashboardBtn").addEventListener("click", function(e) {
+  e.preventDefault();
+  checkAndGoToDashboard('student');
+});
+
+document.getElementById("farmerDashboardBtn").addEventListener("click", function(e) {
+  e.preventDefault();
+  checkAndGoToDashboard('farmer');
+});
+
+// Optional: redirect to agent-login if no agentId on page load (same as your original)
+if (!localStorage.getItem("agentId")) {
+  // You can choose to redirect immediately, but I'll keep it as a check only for dashboard buttons.
+  // If you want to block the whole page, uncomment the next line:
+  // window.location.href = "agent-login.html";
+}
+</script>
+
+</body>
+</html>
