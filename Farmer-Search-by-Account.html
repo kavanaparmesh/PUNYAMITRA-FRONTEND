@@ -139,7 +139,7 @@ async function searchAccount() {
   resultDiv.innerHTML = "Loading...";
 
   try {
-    const res = await fetch(`https://punyamitra-backend.onrender.com/search-farmer-account/${accountNo}`);
+    const res = await fetch(`https://api.punyamitra.org/search-farmer-account/${accountNo}`);
     const data = await res.json();
 
     if (!data.success || !data.farmer) {

@@ -178,7 +178,7 @@ function generateAck(index) {
 
 async function loadPendingEnrollment() {
   try {
-    const response = await fetch("https://punyamitra-backend.onrender.com/pending-enrollments");
+    const response = await fetch("https://api.punyamitra.org/pending-enrollments");
     const data = await response.json();
 
     tableBody.innerHTML = "";

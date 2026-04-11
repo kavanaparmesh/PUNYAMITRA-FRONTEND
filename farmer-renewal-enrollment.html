@@ -297,7 +297,7 @@ let renewalFarmers = [];
 
 async function loadRenewalFarmers() {
   try {
-    const response = await fetch(`https://punyamitra-backend.onrender.com/farmer-dashboard-data/${agentId}`);
+    const response = await fetch(`https://api.punyamitra.org/farmer-dashboard-data/${agentId}`);
     const result = await response.json();
 
    renewalFarmers = (result.farmers || []).filter(farmer => {
