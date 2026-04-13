@@ -147,7 +147,7 @@ async function searchAadhar() {
   resultDiv.innerHTML = "Loading...";
 
   try {
-    const res = await fetch(`https://api.punyamitra.org/api/card/aadhar/${aadhaar}`);
+    const res = await fetch(`https://punyamitra-backend.onrender.com/api/card/aadhar/${aadhaar}`);
     const data = await res.json();
 
     if (!data.success || !data.student) {

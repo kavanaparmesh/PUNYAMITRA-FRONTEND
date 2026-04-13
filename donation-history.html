@@ -27,7 +27,7 @@
 
 <script>
 async function loadDonations(){
-    const res = await fetch("https://api.punyamitra.org/api/payment/donations");
+    const res = await fetch("https://punyamitra-backend.onrender.com/api/payment/donations");
     const data = await res.json();
 
     document.getElementById("count").textContent = data.donations.length;

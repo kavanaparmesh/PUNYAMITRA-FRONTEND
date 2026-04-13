@@ -340,7 +340,7 @@ document.getElementById("enrollmentForm").addEventListener("submit", async funct
   };
 
   try {
-   await fetch("https://api.punyamitra.org/farmer-register", {
+   await fetch("https://punyamitra-backend.onrender.com/farmer-register", {
   method: "POST",
   headers: {
     "Content-Type": "application/json"
@@ -375,7 +375,7 @@ async function verifyFarmerBeforeEnrollment() {
   const agentId = localStorage.getItem("agentId");
 
   try {
-    const response = await fetch("https://api.punyamitra.org/verify-farmer-password", {
+    const response = await fetch("https://punyamitra-backend.onrender.com/verify-farmer-password", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

@@ -180,7 +180,7 @@ async function loadPendingEnrollment() {
   try {
    const agentId = localStorage.getItem("agentId");
 
-    const response = await fetch(`https://api.punyamitra.org/farmer-dashboard-data/${agentId}`);
+    const response = await fetch(`https://punyamitra-backend.onrender.com/farmer-dashboard-data/${agentId}`);
     const result = await response.json();
 
     const data = (result.farmers || []).filter(

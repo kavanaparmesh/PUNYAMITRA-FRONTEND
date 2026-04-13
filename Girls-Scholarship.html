@@ -198,7 +198,7 @@ document.getElementById("showApplyBtn").addEventListener("click", function () {
 
 async function loadScholarshipList() {
   try {
-    const res = await fetch("https://api.punyamitra.org/girls-scholarship-list");
+    const res = await fetch("https://punyamitra-backend.onrender.com/girls-scholarship-list");
     const data = await res.json();
 
     tableBody.innerHTML = "";
@@ -243,7 +243,7 @@ document.getElementById("applyBtn").addEventListener("click", async function () 
   }
 
   try {
-    const res = await fetch("https://api.punyamitra.org/girls-scholarship", {
+    const res = await fetch("https://punyamitra-backend.onrender.com/girls-scholarship", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

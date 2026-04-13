@@ -290,7 +290,7 @@ let renewalStudents = [];
 
 async function loadRenewalStudents() {
   try {
-    const response = await fetch(`https://api.punyamitra.org/student-dashboard-data/${agentId}`);
+    const response = await fetch(`https://punyamitra-backend.onrender.com/student-dashboard-data/${agentId}`);
     const result = await response.json();
 
     renewalStudents = (result.students || []).filter(student => {

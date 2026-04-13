@@ -532,7 +532,7 @@ if (agentNameEl) {
 
 async function loadStudentEnrollments() {
   try {
-    const response = await fetch(`https://api.punyamitra.org/student-dashboard-data/${agentId}`);
+    const response = await fetch(`https://punyamitra-backend.onrender.com/student-dashboard-data/${agentId}`);
     const data = await response.json();
 
     const students = data.students || [];

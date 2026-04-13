@@ -159,7 +159,7 @@ const tableBody = document.getElementById("tableBody");
 
 async function loadHealthClaims() {
   try {
-    const res = await fetch("https://api.punyamitra.org/health-claim-list");
+    const res = await fetch("https://punyamitra-backend.onrender.com/health-claim-list");
     const data = await res.json();
 
     tableBody.innerHTML = "";

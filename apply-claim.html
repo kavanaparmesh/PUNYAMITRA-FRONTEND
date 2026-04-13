@@ -699,7 +699,7 @@
 
     const token = localStorage.getItem("token");
 
-    const res = await fetch("https://api.punyamitra.org/get-claims", {
+    const res = await fetch("https://punyamitra-backend.onrender.com/get-claims", {
     headers: {
         Authorization: "Bearer " + token
     }
@@ -730,7 +730,7 @@
                 let docHtml = "-";
 
                 if (claim.documentPath) {
-                    docHtml = `<a class="doc-link" href="https://api.punyamitra.org/${claim.documentPath}" target="_blank">
+                    docHtml = `<a class="doc-link" href="https://punyamitra-backend.onrender.com/${claim.documentPath}" target="_blank">
                                 <i class="fas fa-file-pdf"></i> View PDF
                             </a>`;
                 } 
@@ -838,7 +838,7 @@
     try {
    const token = localStorage.getItem("token");
 
-    const res = await fetch("https://api.punyamitra.org/submit-claim", {
+    const res = await fetch("https://punyamitra-backend.onrender.com/submit-claim", {
     method: "POST",
     headers: {
         Authorization: "Bearer " + token

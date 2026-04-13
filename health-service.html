@@ -89,7 +89,7 @@ document.getElementById("claimBtn").addEventListener("click", async function () 
   }
 
   try {
-    const res = await fetch("https://api.punyamitra.org/health-claim", {
+    const res = await fetch("https://punyamitra-backend.onrender.com/health-claim", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
