@@ -554,19 +554,7 @@
 </head>
 <body>
 
-<!-- LOGIN SECTION -->
-<div id="loginContainer" class="login-container">
-    <div class="login-card">
-        <h1><i class="fas fa-hand-holding-heart"></i> Punyamitra</h1>
-        <div class="login-tagline">NGO Empowerment Hub</div>
-        <form id="loginForm">
-            <div class="input-group"><label>Email</label><input type="email" id="loginEmail" placeholder="admin@punyamitra.org" required></div>
-            <div class="input-group"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••" required></div>
-            <button type="submit" class="login-btn"><i class="fas fa-arrow-right-to-bracket"></i> Sign In</button>
-            <div class="register-note" style="margin-top:20px;">demo: any email & password</div>
-        </form>
-    </div>
-</div>
+
 
 <!-- DASHBOARD WRAPPER -->
 <div id="dashboardWrapper" class="dashboard-wrapper">
@@ -719,8 +707,31 @@
     </div>
 </div>
 
+
+
 <script>
     // ----------------------------- DATA MODELS (with localStorage) ---------------------------------
+   
+    window.onload = function () {
+
+    const isLoggedIn =
+        localStorage.getItem("adminLoggedIn");
+
+    if (isLoggedIn === "true") {
+
+        document.getElementById(
+            "dashboardWrapper"
+        ).style.display = "block";
+
+        renderDashboard();
+
+    } else {
+
+        window.location.href =
+            "admin-login.html";
+    }
+};
+   
     let members = [],
     donations = [],
     students = [],
@@ -751,29 +762,6 @@
     }
 
 }
-
-
-async function loadAgents() {
-
-    try {
-
-        const response = await fetch(
-            "https://punyamitra-backend.onrender.com/api/agents"
-        );
-
-        const data = await response.json();
-
-        agents = data.agents || [];
-
-    } catch(error) {
-
-        console.log(error);
-
-    }
-
-}
-
-
 
     function saveAll() {
         localStorage.setItem('ng_members', JSON.stringify(members));
@@ -1020,13 +1008,66 @@ async function loadAgents() {
         document.getElementById('dynamicViewContainer').innerHTML = html; attachCrudEvents('donations');
     }
     function renderStudents() {
-        const html = renderTable('Students', students, ['Name', 'Grade', 'Enrolled'], s => `<tr><td>${s.name}</td><td>${s.grade}</td><td>${s.enrolled}</td><td class="edit-delete-icons"><i class="fas fa-edit edit-item" data-id="${s.id}" data-type="students"></i> <i class="fas fa-trash-alt delete-item" data-id="${s.id}" data-type="students"></i></td></tr>`);
-        document.getElementById('dynamicViewContainer').innerHTML = html; attachCrudEvents('students');
-    }
+
+    const html = renderTable(
+        'Students',
+        students,
+        ['Name', 'Grade', 'Enrolled'],
+
+        s => `
+        <tr>
+            <td>${s.name || '-'}</td>
+            <td>${s.grade || '-'}</td>
+            <td>${s.date || '-'}</td>
+
+            <td class="edit-delete-icons">
+                <i class="fas fa-edit edit-item"
+                   data-id="${s.id}"
+                   data-type="students"></i>
+
+                <i class="fas fa-trash-alt delete-item"
+                   data-id="${s.id}"
+                   data-type="students"></i>
+            </td>
+        </tr>
+        `
+    );
+
+    document.getElementById('dynamicViewContainer').innerHTML = html;
+
+    attachCrudEvents('students');
+}
+
     function renderFarmers() {
-        const html = renderTable('Farmers', farmers, ['Name', 'Land Size', 'Crop'], f => `<tr><td>${f.name}</td><td>${f.landSize}</td><td>${f.crop}</td><td class="edit-delete-icons"><i class="fas fa-edit edit-item" data-id="${f.id}" data-type="farmers"></i> <i class="fas fa-trash-alt delete-item" data-id="${f.id}" data-type="farmers"></i></td></tr>`);
-        document.getElementById('dynamicViewContainer').innerHTML = html; attachCrudEvents('farmers');
-    }
+
+    const html = renderTable(
+        'Farmers',
+        farmers,
+        ['Name', 'Land Size', 'Crop'],
+
+        f => `
+        <tr>
+            <td>${f.name || '-'}</td>
+            <td>${f.land || '-'}</td>
+            <td>${f.crop || '-'}</td>
+
+            <td class="edit-delete-icons">
+                <i class="fas fa-edit edit-item"
+                   data-id="${f.id}"
+                   data-type="farmers"></i>
+
+                <i class="fas fa-trash-alt delete-item"
+                   data-id="${f.id}"
+                   data-type="farmers"></i>
+            </td>
+        </tr>
+        `
+    );
+
+    document.getElementById('dynamicViewContainer').innerHTML = html;
+
+    attachCrudEvents('farmers');
+}
     function renderSchemes() {
         const html = renderTable('Schemes', schemes, ['Scheme Name', 'Description', 'Budget'], s => `<tr><td>${s.name}</td><td>${s.description}</td><td>${s.budget}</td><td class="edit-delete-icons"><i class="fas fa-edit edit-item" data-id="${s.id}" data-type="schemes"></i> <i class="fas fa-trash-alt delete-item" data-id="${s.id}" data-type="schemes"></i></td></tr>`);
         document.getElementById('dynamicViewContainer').innerHTML = html; attachCrudEvents('schemes');
@@ -2231,10 +2272,13 @@ async function createAgentLogin() {
         renderDashboard();
         document.getElementById('notifBadge').innerText = '3';
     });
-    document.getElementById('logoutBtnSidebar').addEventListener('click', (e) => {
-        e.preventDefault();
-        dashboardWrapper.style.display = 'none';
-        loginContainer.style.display = 'flex';
+   document.getElementById("logoutBtnSidebar")
+    .addEventListener("click", () => {
+
+        localStorage.removeItem("adminLoggedIn");
+
+        window.location.href =
+            "admin-login.html";
     });
     
     // Profile Modal
@@ -2570,8 +2614,6 @@ async function loadAgents() {
 
         agents = data;
 
-        renderSection('agents');
-
     } catch(error) {
 
         console.log(error);
@@ -2592,7 +2634,6 @@ async function loadStudents() {
 
         students = data;
 
-        renderSection('students');
 
     } catch(error) {
 
@@ -2614,7 +2655,6 @@ async function loadFarmers() {
 
         farmers = data;
 
-        renderSection('farmers');
 
     } catch(error) {
 
