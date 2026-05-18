@@ -245,7 +245,6 @@ footer a:hover {
             </div>
         </div>
 
-        <!-- Footer -->
         <footer>
             <p>&copy; 2025 Punyamitra | <a href="#">Privacy Policy</a> | <a href="#">Help Desk</a></p>
         </footer>
@@ -281,7 +280,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
         const result = await response.json();
 
-        localStorage.setItem("loggedInAdmin", JSON.stringify(result.admin));
+        localStorage.setItem("adminLoggedIn", "true");
 
         window.location.href = "admin-master-dashboard.html";
 
