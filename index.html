@@ -1891,7 +1891,9 @@
         </p>
         <div class="hero-buttons">
           <a href="#" class="btn-primary"><i class="fas fa-arrow-right"></i> Discover Work</a>
-          <a href="#" class="btn-outline open-join-form" data-plan="Volunteer"><i class="fas fa-calendar-plus"></i> Volunteer</a>
+          <a href="javascript:void(0)" class="btn-outline" onclick="openVolunteerSection()">
+    <i class="fas fa-calendar-plus"></i> Volunteer
+</a>
         </div>
         <div class="hero-stats">
           <div class="stat-item">
@@ -2311,7 +2313,7 @@
   <!-- PROGRAMS PAGE (hidden by default) -->
   <div id="programsPage" class="programs-page hidden">
     <!-- PROGRAMS HERO (PARALLAX) -->
-    <section class="programs home-programs">
+   <section class="programs home-programs" id="volunteer-opportunities">
       <div class="programs-hero-parallax"></div>
       <div class="container programs-hero-content">
         <h1>Our Programs</h1>
@@ -2351,13 +2353,47 @@
             <p>Participate in tree plantation and sustainability programs.</p>
           </div>
         </div>
-        <div class="volunteer-form">
-          <h3>Volunteer Sign-Up Form</h3>
-          <input type="text" placeholder="Full Name">
-          <input type="email" placeholder="Email Address">
-          <textarea rows="4" placeholder="Tell us how you'd like to volunteer"></textarea>
-          <button class="btn-plan">Submit Volunteer Request</button>
-        </div>
+        <div class="volunteer-form" id="volunteer-signup">
+
+    <h3>Volunteer Sign-Up Form</h3>
+
+    <form id="volunteerForm">
+
+    <input 
+        type="text" 
+        name="name"
+        placeholder="Full Name" 
+        required
+    >
+
+    <input 
+        type="email" 
+        name="email"
+        placeholder="Email Address" 
+        required
+    >
+
+    <input 
+        type="text" 
+        name="role"
+        placeholder="Volunteer Role"
+        required
+    >
+
+    <textarea 
+        rows="4" 
+        name="message"
+        placeholder="Tell us how you'd like to volunteer"
+        required
+    ></textarea>
+
+    <button type="submit" class="btn-plan">
+        Submit Volunteer Request
+    </button>
+
+</form>
+
+</div>
       </div>
 
       <div class="program-card">
@@ -3036,6 +3072,51 @@ window.addEventListener("DOMContentLoaded", () => {
     </div>
   </div>
 </div>
+<div id="joinModal" class="join-modal hidden">
+  <div class="join-modal-box">
+
+    <button class="join-close" onclick="closeJoinModal()">×</button>
+
+    <h2>Join Punyamitra</h2>
+
+   <form id="volunteerForm">
+
+    <input 
+        type="text" 
+        name="name"
+        placeholder="Full Name" 
+        required
+    >
+
+    <input 
+        type="email" 
+        name="email"
+        placeholder="Email Address" 
+        required
+    >
+
+    <input 
+        type="text"
+        name="role"
+        placeholder="Volunteer Role"
+        required
+    >
+
+    <textarea 
+        rows="4" 
+        name="message"
+        placeholder="Tell us how you'd like to volunteer"
+        required
+    ></textarea>
+
+    <button type="submit" class="btn-plan">
+        Submit Volunteer Request
+    </button>
+
+</form>
+
+  </div>
+</div>
 
 <script>
 (function () {
@@ -3290,5 +3371,207 @@ async function payNow(amount) {
   }
 }
 </script>
+<script>
+document.querySelectorAll('.open-join-form').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const modal = document.getElementById('joinModal');
+
+        if(modal){
+            modal.classList.remove('hidden');
+        }
+
+        const selectedPlan = this.getAttribute('data-plan') || '';
+
+        const planInput = document.getElementById('selectedPlan');
+
+        if(planInput){
+            planInput.value = selectedPlan;
+        }
+    });
+});
+
+function closeJoinModal() {
+    const modal = document.getElementById('joinModal');
+
+    if(modal){
+        modal.classList.add('hidden');
+    }
+}
+</script>
+<script>
+async function submitVolunteerForm() {
+
+    const inputs = document.querySelectorAll('.volunteer-form input');
+    const textarea = document.querySelector('.volunteer-form textarea');
+
+    const name = inputs[0].value;
+    const email = inputs[1].value;
+    const message = textarea.value;
+
+    if (!name || !email || !message) {
+        alert("Please fill all fields");
+        return;
+    }
+
+    try {
+
+        const response = await fetch('https://punyamitra-backend.onrender.com/api/volunteers', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                message
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+
+            alert("Volunteer request submitted successfully");
+
+            inputs[0].value = "";
+            inputs[1].value = "";
+            textarea.value = "";
+
+        } else {
+
+            alert("Failed to submit request");
+        }
+
+    } catch (error) {
+
+        console.log(error);
+
+        alert("Server error");
+    }
+}
+</script>
+
+<script>
+async function submitVolunteerForm() {
+
+    const name = document.getElementById('volunteerName').value;
+
+    const email = document.getElementById('volunteerEmail').value;
+
+    const message = document.getElementById('volunteerMessage').value;
+
+    if (!name || !email || !message) {
+
+        alert("Please fill all fields");
+
+        return;
+    }
+
+    try {
+
+        const response = await fetch('https://punyamitra-backend.onrender.com/api/volunteers', {
+
+            method: 'POST',
+
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify({
+                name,
+                email,
+                message
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+
+            alert("Volunteer request submitted successfully");
+
+            document.getElementById('volunteerName').value = '';
+
+            document.getElementById('volunteerEmail').value = '';
+
+            document.getElementById('volunteerMessage').value = '';
+
+        } else {
+
+            alert("Failed to submit request");
+        }
+
+    } catch (error) {
+
+        console.log(error);
+
+        alert("Server error");
+    }
+}
+</script>
+
+<script>
+function openVolunteerSection() {
+
+  // show programs page
+  document.getElementById("programsPage").classList.remove("hidden");
+
+  // hide home section if needed
+  document.getElementById("homeSection").classList.add("hidden");
+
+  // scroll to volunteer section
+  document.getElementById("volunteer-signup")
+    .scrollIntoView({ behavior: "smooth" });
+}
+</script>
+
+<script>
+
+document.getElementById("volunteerForm")
+.addEventListener("submit", async function(e) {
+
+    e.preventDefault();
+
+    const formData = {
+        name: this.name.value,
+        email: this.email.value,
+        role: this.role.value,
+        message: this.message.value,
+        joinDate: new Date().toISOString().split('T')[0]
+    };
+
+    try {
+
+        const response = await fetch("https://punyamitra-backend.onrender.com/api/volunteers", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        alert("Volunteer Request Submitted Successfully");
+
+        this.reset();
+
+    } catch(error) {
+
+        console.error(error);
+
+        alert("Error submitting form");
+
+    }
+
+});
+
+</script>
+
+
+
+
 </body>
 </html>
