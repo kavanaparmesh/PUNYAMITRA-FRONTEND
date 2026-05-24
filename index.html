@@ -3031,7 +3031,7 @@ document.querySelectorAll(".animate-card, .benefit-card").forEach(el => {
 
       <!-- Payment confirmation checkbox -->
       <div class="payment-checkbox">
-        <input type="checkbox" id="paymentConfirmed">
+        <<input type="checkbox" id="paymentConfirmed" disabled>
         <label for="paymentConfirmed">✅ I have completed the payment via UPI</label>
       </div>
 
@@ -3278,11 +3278,15 @@ async function payNow(amount = 0) {
 
       handler: function (response) {
 
-        alert("Payment Successful!");
+      console.log(response);
 
-        console.log(response);
+      paymentCheckbox.disabled = false;
+      
+      paymentCheckbox.checked = true;
 
-      },
+      alert("Payment Successful");
+
+},
 
       theme: {
         color: "#0b5d3b"
