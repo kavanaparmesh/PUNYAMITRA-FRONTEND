@@ -541,6 +541,58 @@
         .btn-wa:hover {
             background: #128C7E;
         }
+        .message-dropdown{
+        position:relative;
+        display:inline-block;
+        margin-right:10px;
+        }
+    
+.message-btn{
+  width:46px;
+  height:46px;
+  border:none;
+  border-radius:50%;
+  background:white;
+  cursor:pointer;
+  font-size:18px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+.message-menu{
+    display:none;
+    position:absolute;
+    top:60px;
+    right:0;
+    width:240px;
+    background:white;
+    border-radius:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.15);
+    z-index:999999;
+}
+.message-item{
+  padding:15px;
+  cursor:pointer;
+  border-bottom:1px solid #eee;
+  font-size:15px;
+}
+
+.message-item:hover{
+  background:#f5f5f5;
+}
+
+.message-item i{
+  margin-right:10px;
+  color:#0b4f3c;
+}
+
+.badge{
+  float:right;
+  background:red;
+  color:white;
+  border-radius:50%;
+  padding:2px 7px;
+  font-size:12px;
+}
         @media (max-width: 680px) {
             .agent-info {
                 flex-direction: column;
@@ -605,48 +657,15 @@
             <div class="dashboard-header">
                 <div class="greeting"><h1>Dashboard</h1><p>Welcome back, <strong id="greetingName">Admin User</strong> • system overview</p></div>
                 <div class="header-actions">
-                    <div class="notification-bell" id="notificationBell"><i class="fa-regular fa-bell"></i><span class="badge" id="notifBadge">3</span></div>
+                  
+                    <div class="message-dropdown">
+                    </div>
                     <div class="profile-edit-trigger" id="profileEditBtn"><i class="fas fa-user-pen"></i> <span>Edit Profile</span></div>
                 </div>
             </div>
             <div id="dynamicViewContainer"></div>
         </main>
     </div>
-</div>
-
-<!-- NOTIFICATION PANEL -->
-<div id="notificationPanel" class="notification-panel">
-
-    <div class="notification-item"
-        onclick="renderSection('members')"
-        style="cursor:pointer;">
-
-        <i class="fas fa-user-plus"></i>
-
-        <strong>New member</strong> joined today
-
-    </div>
-
-    <div class="notification-item"
-        onclick="renderSection('donations')"
-        style="cursor:pointer;">
-
-        <i class="fas fa-rupee-sign"></i>
-
-        Donation of ₹25,000 received
-
-    </div>
-
-    <div class="notification-item"
-        onclick="renderSection('events')"
-        style="cursor:pointer;">
-
-        <i class="fas fa-calendar-check"></i>
-
-        Event "Health Camp" tomorrow
-
-    </div>
-
 </div>
 
 <!-- PROFILE MODAL -->
@@ -712,68 +731,61 @@
 <script>
     // ----------------------------- DATA MODELS (with localStorage) ---------------------------------
    
-    window.onload = function () {
+   window.onload = async function () {
 
     const isLoggedIn =
         localStorage.getItem("adminLoggedIn");
 
-    if (isLoggedIn === "true") {
-
-        document.getElementById(
-            "dashboardWrapper"
-        ).style.display = "block";
-
-        renderDashboard();
-
-    } else {
+    if (isLoggedIn !== "true") {
 
         window.location.href =
             "admin-login.html";
+
+        return;
     }
+
+    document.getElementById(
+        "dashboardWrapper"
+    ).style.display = "block";
+
+    try {
+
+    } catch (error) {
+
+        console.log(
+            "Dashboard loading error:",
+            error
+        );
+
+    }
+
+    // setInterval(
+    //     loadContactNotifications,
+    //     10000
+    // );
+
+    await loadAgents();
+    await loadStudents();
+    await loadFarmers();
+    await loadVolunteers();
+
+
+
+    renderSection(currentSection);
+
+
 };
-   
-    let members = [],
-    donations = [],
+
+  let members = JSON.parse(localStorage.getItem('members')) || [],
+    donations = JSON.parse(localStorage.getItem('donations')) || [],
     students = [],
     farmers = [],
-    schemes = [],
-    events = [],
+    schemes = JSON.parse(localStorage.getItem('schemes')) || [],
+    events = JSON.parse(localStorage.getItem('events')) || [],
     volunteers = [],
     agents = [];
 
     let currentAgentId = null;
-
-    async function loadVolunteers() {
-
-    try {
-
-        const response = await fetch("https://punyamitra-backend.onrender.com/api/volunteers");
-
-        const data = await response.json();
-
-      volunteers = data.volunteers;
-
-        renderSection('volunteers');
-
-    } catch(error) {
-
-        console.log(error);
-
-    }
-
-}
-
-    function saveAll() {
-        localStorage.setItem('ng_members', JSON.stringify(members));
-        localStorage.setItem('ng_donations', JSON.stringify(donations));
-        localStorage.setItem('ng_students', JSON.stringify(students));
-        localStorage.setItem('ng_farmers', JSON.stringify(farmers));
-        localStorage.setItem('ng_schemes', JSON.stringify(schemes));
-        localStorage.setItem('ng_events', JSON.stringify(events));
-        localStorage.setItem('ng_volunteers', JSON.stringify(volunteers));
-        if(currentSection === 'dashboard') renderDashboard();
-        else if(currentSection) renderSection(currentSection);
-    }
 
     // ----------------------------- CSV Export Helpers -----------------------------
     function downloadCSV(data, filename) {
@@ -800,7 +812,7 @@
     }
 
     function exportAgentsCSV() {
-        const agentsData = volunteers.map(v => ({ Name: v.name, Email: v.email, Phone: v.phone, Role: v.role, JoinDate: v.joinDate }));
+        const agentsData = agents.map(v => ({ Name: v.name, Email: v.email, Phone: v.phone, Role: v.role, JoinDate: v.joinDate }));
         downloadCSV(agentsData, 'punyamitra_agents.csv');
     }
     function exportMembersCSV() {
@@ -812,11 +824,11 @@
         downloadCSV(donData, 'punyamitra_donations.csv');
     }
     function exportStudentsCSV() {
-        const stuData = students.map(s => ({ Name: s.name, Grade: s.grade, EnrollmentDate: s.enrolled }));
+        const stuData = students.map(s => ({ Name: s.fullname, Course: s.course, EnrollmentDate: s.date || s.registeredAt }));
         downloadCSV(stuData, 'punyamitra_students.csv');
     }
     function exportAllDataCSV() {
-        const allAgents = volunteers.map(v => ({ Type: 'Agent', Name: v.name, Email: v.email, Phone: v.phone, Role: v.role, JoinDate: v.joinDate }));
+        const allAgents = agents.map(v => ({ Type: 'Agent', Name: v.name, Email: v.email, Phone: v.phone, Role: v.role, JoinDate: v.joinDate }));
         const allMembers = members.map(m => ({ Type: 'Member', Name: m.name, Email: m.email, JoinDate: m.joinDate }));
         const allDonations = donations.map(d => ({ Type: 'Donation', Donor: d.donor, Amount: d.amount, Date: d.date }));
         const combined = [...allAgents, ...allMembers, ...allDonations];
@@ -831,12 +843,104 @@
         return `<div class="flex-between"><h2>Manage ${section}</h2><button class="action-btn" id="addNewBtn">+ Add New</button></div>
                 <div style="overflow-x:auto;"><table><thead><tr>${columns.map(c => `<th>${c}</th>`).join('')}<th>Actions</th></tr></thead><tbody>${rows || '<tr><td colspan="10">No data found</td></tr>'}</tbody></table></div>`;
     }
+    function renderSection(section) {
+
+    currentSection = section;
+
+    document.querySelectorAll('.nav-item')
+    .forEach(item => {
+
+        item.classList.remove('active');
+
+        if(item.dataset.section === section) {
+
+            item.classList.add('active');
+
+        }
+
+    });
+
+    switch(section) {
+
+        case 'dashboard':
+            renderDashboard();
+            break;
+
+        case 'members':
+            renderMembers();
+            break;
+
+        case 'donations':
+            renderDonations();
+            break;
+
+        case 'students':
+            renderStudents();
+            break;
+
+        case 'farmers':
+            renderFarmers();
+            break;
+
+        case 'schemes':
+            renderSchemes();
+            break;
+
+        case 'events':
+            renderEvents();
+            break;
+
+        case 'volunteers':
+            renderVolunteers();
+            break;
+
+        case 'agents':
+            renderAgents();
+            break;
+
+        case 'reports':
+            renderReports();
+            break;
+
+        case 'communications':
+            renderCommunications();
+            break;
+
+        case 'documents':
+            renderDocuments();
+            break;
+
+        default:
+            renderDashboard();
+
+    }
+
+}
+
+document.querySelectorAll('.nav-item')
+.forEach(item => {
+
+    item.addEventListener('click', () => {
+
+        const section =
+            item.dataset.section;
+
+        if(section) {
+
+            renderSection(section);
+
+        }
+
+    });
+
+});
 
     function renderDashboard() {
     const totalMembers = members.length;
     const donationSum = donations.reduce((s,d)=>s+(d.amount||0),0);
     const upcoming = events.filter(e => new Date(e.date) > new Date()).length;
-    const volunteerCount = volunteers.length;
+     const volunteerCount =
+        volunteers ? volunteers.length : 0;
 
     const html = `
 
@@ -994,119 +1098,200 @@
         );
 
     document.getElementById('quickAddAgent')
-    ?.addEventListener('click', () =>
-        openAgentCreateModal()
-    );
+        ?.addEventListener('click', () =>
+            openCrudModal('agents')
+        );
 }
 
-    function renderMembers() { 
-        const html = renderTable('Members', members, ['Name', 'Email', 'Join Date'], m => `<tr><td>${m.name}</td><td>${m.email}</td><td>${m.joinDate}</td><td class="edit-delete-icons"><i class="fas fa-edit edit-item" data-id="${m.id}" data-type="members"></i> <i class="fas fa-trash-alt delete-item" data-id="${m.id}" data-type="members"></i></td></tr>`);
-        document.getElementById('dynamicViewContainer').innerHTML = html; attachCrudEvents('members');
-    }
-    function renderDonations() {
-        const html = renderTable('Donations', donations, ['Donor', 'Amount (₹)', 'Date'], d => `<tr><td>${d.donor}</td><td>₹${d.amount.toLocaleString()}</td><td>${d.date}</td><td class="edit-delete-icons"><i class="fas fa-edit edit-item" data-id="${d.id}" data-type="donations"></i> <i class="fas fa-trash-alt delete-item" data-id="${d.id}" data-type="donations"></i></td></tr>`);
-        document.getElementById('dynamicViewContainer').innerHTML = html; attachCrudEvents('donations');
-    }
-    function renderStudents() {
+    function renderMembers() {
 
     const html = renderTable(
-        'Students',
-        students,
-        ['Name', 'Grade', 'Enrolled'],
+        'Members',
+        members,
+        ['Name', 'Email', 'Join Date'],
+
+        m => `
+        <tr>
+
+            <td>${m.name}</td>
+
+            <td>${m.email}</td>
+
+            <td>${m.joinDate || '-'}</td>
+
+            <td class="edit-delete-icons">
+
+                <i class="fas fa-edit edit-item"
+                   data-id="${m._id || m.id}"
+                   data-type="members"></i>
+
+                <i class="fas fa-trash-alt delete-item"
+                   data-id="${m._id || m.id}"
+                   data-type="members"></i>
+
+            </td>
+
+        </tr>
+        `
+    );
+
+    document.getElementById(
+        'dynamicViewContainer'
+    ).innerHTML = html;
+
+    attachCrudEvents('members');
+}
+
+function renderDonations() {
+
+    const html = renderTable(
+        'Donations',
+        donations,
+        ['Donor', 'Amount (₹)', 'Date'],
+
+        d => `
+        <tr>
+
+            <td>${d.donor}</td>
+
+            <td>₹${(d.amount || 0).toLocaleString()}</td>
+
+            <td>${d.date || '-'}</td>
+
+            <td class="edit-delete-icons">
+
+                <i class="fas fa-edit edit-item"
+                   data-id="${d._id || d.id}"
+                   data-type="donations"></i>
+
+                <i class="fas fa-trash-alt delete-item"
+                   data-id="${d._id || d.id}"
+                   data-type="donations"></i>
+
+            </td>
+
+        </tr>
+        `
+    );
+
+    document.getElementById(
+        'dynamicViewContainer'
+    ).innerHTML = html;
+
+    attachCrudEvents('donations');
+}
+
+function renderSchemes() {
+
+    const html = renderTable(
+        'Schemes',
+        schemes,
+        ['Scheme Name', 'Description', 'Budget'],
 
         s => `
         <tr>
-            <td>${s.name || '-'}</td>
-            <td>${s.grade || '-'}</td>
-            <td>${s.date || '-'}</td>
+
+            <td>${s.name}</td>
+
+            <td>${s.description}</td>
+
+           <td>${s.budget || '-'}</td>
 
             <td class="edit-delete-icons">
+
                 <i class="fas fa-edit edit-item"
-                   data-id="${s.id}"
-                   data-type="students"></i>
+                   data-id="${s._id || s.id}"
+                   data-type="schemes"></i>
 
                 <i class="fas fa-trash-alt delete-item"
-                   data-id="${s.id}"
-                   data-type="students"></i>
+                   data-id="${s._id || s.id}"
+                   data-type="schemes"></i>
+
             </td>
+
         </tr>
         `
     );
 
-    document.getElementById('dynamicViewContainer').innerHTML = html;
+    document.getElementById(
+        'dynamicViewContainer'
+    ).innerHTML = html;
 
-    attachCrudEvents('students');
+    attachCrudEvents('schemes');
 }
 
-    function renderFarmers() {
+function renderEvents() {
 
     const html = renderTable(
-        'Farmers',
-        farmers,
-        ['Name', 'Land Size', 'Crop'],
+        'Events',
+        events,
+        ['Event Name', 'Date', 'Location'],
 
-        f => `
+        e => `
         <tr>
-            <td>${f.name || '-'}</td>
-            <td>${f.land || '-'}</td>
-            <td>${f.crop || '-'}</td>
+
+            <td>${e.name}</td>
+
+            <td>${e.date}</td>
+
+            <td>${e.location || '-'}</td>
 
             <td class="edit-delete-icons">
+
                 <i class="fas fa-edit edit-item"
-                   data-id="${f.id}"
-                   data-type="farmers"></i>
+                   data-id="${e._id || e.id}"
+                   data-type="events"></i>
 
                 <i class="fas fa-trash-alt delete-item"
-                   data-id="${f.id}"
-                   data-type="farmers"></i>
+                   data-id="${e._id || e.id}"
+                   data-type="events"></i>
+
             </td>
+
         </tr>
         `
     );
 
-    document.getElementById('dynamicViewContainer').innerHTML = html;
+    document.getElementById(
+        'dynamicViewContainer'
+    ).innerHTML = html;
 
-    attachCrudEvents('farmers');
+    attachCrudEvents('events');
 }
-    function renderSchemes() {
-        const html = renderTable('Schemes', schemes, ['Scheme Name', 'Description', 'Budget'], s => `<tr><td>${s.name}</td><td>${s.description}</td><td>${s.budget}</td><td class="edit-delete-icons"><i class="fas fa-edit edit-item" data-id="${s.id}" data-type="schemes"></i> <i class="fas fa-trash-alt delete-item" data-id="${s.id}" data-type="schemes"></i></td></tr>`);
-        document.getElementById('dynamicViewContainer').innerHTML = html; attachCrudEvents('schemes');
-    }
-    function renderEvents() {
-        const html = renderTable('Events', events, ['Event Name', 'Date', 'Location'], e => `<tr><td>${e.name}</td><td>${e.date}</td><td>${e.location}</td><td class="edit-delete-icons"><i class="fas fa-edit edit-item" data-id="${e.id}" data-type="events"></i> <i class="fas fa-trash-alt delete-item" data-id="${e.id}" data-type="events"></i></td></tr>`);
-        document.getElementById('dynamicViewContainer').innerHTML = html; attachCrudEvents('events');
-    }
 
-    async function renderVolunteers() {
-
-    try {
-
-        const response = await fetch(
-            "https://punyamitra-backend.onrender.com/api/volunteers"
-        );
-
-        const data = await response.json();
-
-        const volunteers = data.volunteers;
+ function renderStudents() {
 
         const html = renderTable(
-            'Volunteers',
-            volunteers,
-            ['Name', 'Role', 'Join Date'],
+            'Students',
+            students,
+            ['Name', 'Course', 'Registered Date'],
 
-            v => `
+            s => `
             <tr>
-                <td>${v.name}</td>
-                <td>${v.role}</td>
-                <td>${v.joinDate}</td>
 
-               <td class="edit-delete-icons">
+                <td>${s.fullname || '-'}</td>
 
-                <i class="fas fa-edit"
-                onclick="editVolunteer('${v._id}')"></i>
+                <td>${s.course || '-'}</td>
 
-                <i class="fas fa-trash-alt"
-                onclick="deleteVolunteer('${v._id}')"></i>
+                <td>
+                   ${
+                    s.date || s.registeredAt
+                    ? new Date(
+                        s.date || s.registeredAt
+                    ).toLocaleDateString()
+                    : '-'
+                }
+                </td>
+
+                <td class="edit-delete-icons">
+
+                    <i class="fas fa-edit edit-item"
+                       data-id="${s._id || s.id}"
+                       data-type="students"></i>
+
+                    <i class="fas fa-trash-alt delete-item"
+                      data-id="${s._id || s.id}"
+                       data-type="students"></i>
 
                 </td>
 
@@ -1118,6 +1303,232 @@
             'dynamicViewContainer'
         ).innerHTML = html;
 
+    
+
+        attachCrudEvents('students');
+    }
+
+
+function renderFarmers() {
+
+        const html = renderTable(
+            'Farmers',
+            farmers,
+            ['Name', 'Crop', 'Farm Size'],
+
+            f => `
+            <tr>
+
+                <td>${f.fullname || '-'}</td>
+
+                 <td>${f.crop ||
+                       f.cropType ||
+                       f.crops || '-'}</td>
+
+                <td>${f.farmSize ||
+                      f.land ||
+                      f.landSize || '-'}</td>
+
+                <td class="edit-delete-icons">
+
+                    <i class="fas fa-edit edit-item"
+                       data-id="${f._id || f.id}"
+                       data-type="farmers"></i>
+
+                    <i class="fas fa-trash-alt delete-item"
+                       data-id="${f._id || f.id}"
+                       data-type="farmers"></i>
+
+                </td>
+
+            </tr>
+            `
+        );
+
+        document.getElementById(
+            'dynamicViewContainer'
+        ).innerHTML = html;
+
+        attachCrudEvents('farmers');
+
+    } 
+
+async function loadAgents() {
+
+    try {
+
+        const response = await fetch(
+            "https://punyamitra-backend.onrender.com/agents"
+        );
+
+        const data = await response.json();
+
+        agents = data;
+
+        console.log(
+            "Agents loaded:",
+            agents
+        );
+
+    } catch(error) {
+
+        console.log(
+            "Agent loading error:",
+            error
+        );
+
+    }
+}
+    
+    // AGENTS SECTION (vertical rows with email/wa icons)
+    function renderAgents() {
+
+    const container = `
+
+    <div class="agent-messaging-panel"
+         style="background:#f8fafc; margin-bottom:16px; padding:20px; border-radius:20px;">
+
+        <h3>
+            <i class="fas fa-user-tie"></i>
+            All Registered Agents
+        </h3>
+
+        <p>
+            Below is the list of all agents (volunteers)
+            with their contact details.
+        </p>
+
+    </div>
+
+    <div class="flex-between">
+
+        <h2>Manage Agents</h2>
+
+        <button class="action-btn"
+            onclick="openAgentCreateModal()">
+
+            + Add New Agent
+
+        </button>
+
+    </div>
+
+    <div style="overflow-x:auto;">
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Role</th>
+                    <th>Join Date</th>
+                    <th>Actions</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+${agents.map(a => `
+<tr>
+
+    <td>${a.name || '-'}</td>
+
+    <td>${a.email || '-'}</td>
+
+    <td>${a.phone || '-'}</td>
+
+    <td>${a.role || '-'}</td>
+
+    <td>
+${
+    a.joinDate || a.createdAt
+    ? new Date(
+        a.joinDate || a.createdAt
+    ).toISOString().split("T")[0]
+    : "-"
+}
+</td>
+
+    <td class="edit-delete-icons">
+
+        <i class="fas fa-edit edit-item"
+           data-id="${a._id || a.id}"
+           data-type="agents"></i>
+
+        <i class="fas fa-trash-alt delete-item"
+           data-id="${a._id || a.id}"
+           data-type="agents"></i>
+
+    </td>
+
+</tr>
+`).join('')}
+
+</tbody>
+        </table>
+
+    </div>
+
+    <div id="details" style="margin-top:20px;"></div>
+    `;
+
+    document.getElementById(
+        'dynamicViewContainer'
+    ).innerHTML = container;
+
+    // ATTACH CRUD EVENTS
+    setTimeout(() => {
+
+        attachCrudEvents('agents');
+
+    }, 100);
+}
+
+    async function editAgent(agentId) {
+
+    if (!name) return;
+
+    try {
+
+        const response = await fetch(
+
+            `https://punyamitra-backend.onrender.com/update-agent/${agentId}`,
+
+            {
+
+                method: "PUT",
+
+                headers: {
+                    "Content-Type":
+                    "application/json"
+                },
+
+                body: JSON.stringify({
+                    name
+                })
+
+            }
+
+        );
+
+        const data =
+            await response.json();
+
+      if (data.success) {
+
+    alert("Agent updated");
+
+    await loadAgents();
+
+    modal.style.display = 'none';
+
+    renderSection('agents');
+}
+
     } catch(error) {
 
         console.log(error);
@@ -1126,80 +1537,219 @@
 
 }
 
-    
-    // AGENTS SECTION (vertical rows with email/wa icons)
-    function renderAgents() {
-        const agentsData = agents;
-        const tableHtml = renderTable('Agents', agentsData, ['Name', 'Email', 'Phone', 'Role', 'Join Date'], a => `
-            <tr>
-                <td>${a.name}</td>
-                <td>${a.email || '—'}</td>
-                <td>${a.phone || '—'}</td>
-                <td>${a.role}</td>
-                <td>${a.joinDate}</td>
-                <td class="edit-delete-icons">
-                    <button
-    onclick="viewAgent('${a.agent_id}')"
-    style="
-        padding:6px 12px;
-        border:none;
-        border-radius:10px;
-        background:#2563eb;
-        color:white;
-        cursor:pointer;
-        margin-left:10px;
-    "
->
-    View
-</button>
-                    <i class="fas fa-edit edit-item" data-id="${a.id}" data-type="volunteers"></i>
-                    <i class="fas fa-trash-alt delete-item" data-id="${a.id}" data-type="volunteers"></i>
-                    <i class="fas fa-envelope msg-agent-email" data-email="${a.email}" data-name="${a.name}" style="margin-left:8px; color:#3b82f6;" title="Send Email"></i>
-                    <i class="fab fa-whatsapp msg-agent-wa" data-phone="${a.phone}" data-msg="Hello Agent, this is a test message from Punyamitra." style="margin-left:8px; color:#25D366;" title="Send WhatsApp"></i>
-                </td>
-            </tr>
-        `);
-const container = `
-<div class="agent-messaging-panel"
-     style="background:#f8fafc; margin-bottom:16px;">
+async function editStudent(id) {
 
-    <h3>
-        <i class="fas fa-user-tie"></i>
-        All Registered Agents
-    </h3>
+    const fullname = prompt("Enter student name");
+    const email = prompt("Enter email");
 
-    <p>
-        Below is the list of all agents (volunteers)
-        with their contact details.
-    </p>
+    if (!fullname || !email) return;
 
-</div>
+    try {
 
-${tableHtml}
+        const response = await fetch(
+            `https://punyamitra-backend.onrender.com/students/${id}`,
+            {
+                method: "PUT",
 
-<div id="details" style="margin-top:20px;"></div>
-`;
-        document.getElementById('dynamicViewContainer').innerHTML = container;
-        attachCrudEvents('volunteers');
-        document.querySelectorAll('.msg-agent-email').forEach(icon => {
-            icon.addEventListener('click', () => {
-                const email = icon.getAttribute('data-email');
-                const name = icon.getAttribute('data-name');
-                if(email && email !== '—') window.location.href = `mailto:${email}?subject=NGO%20Update&body=Dear%20${encodeURIComponent(name)}%2C`;
-                else alert('No email address available.');
-            });
-        });
-        document.querySelectorAll('.msg-agent-wa').forEach(icon => {
-            icon.addEventListener('click', () => {
-                let phone = icon.getAttribute('data-phone');
-                const msg = icon.getAttribute('data-msg');
-                if(phone && phone !== '—') {
-                    phone = phone.replace(/\D/g, '');
-                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-                } else alert('No phone number available.');
-            });
-        });
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    fullname,
+                    email
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+
+            alert("Student updated successfully");
+
+         await loadStudents();
+         renderStudents();
+
+        } else {
+
+            alert("Update failed");
+
+        }
+
+    } catch (error) {
+
+        console.log(error);
+
+        alert("Server error");
+
     }
+
+}
+
+async function editFarmer(id) {
+
+    const fullname = prompt("Enter farmer name");
+    const email = prompt("Enter email");
+
+    if (!fullname || !email) return;
+
+    try {
+
+        const response = await fetch(
+            `https://punyamitra-backend.onrender.com/farmers/${id}`,
+            {
+                method: "PUT",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    fullname,
+                    email
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+
+            alert("Farmer updated successfully");
+
+           await loadFarmers();
+           renderFarmers();
+
+        } else {
+
+            alert("Update failed");
+
+        }
+
+    } catch (error) {
+
+        console.log(error);
+
+        alert("Server error");
+
+    }
+
+}
+
+
+    async function renderVolunteers() {
+
+    try {
+
+        const response = await fetch("https://punyamitra-backend.onrender.com/api/volunteers");
+
+        const data = await response.json();
+
+        const volunteerList = Array.isArray(data)
+            ? data
+            : (data.volunteers || []);
+
+        volunteers = volunteerList;
+
+        const html = `
+        <div class="flex-between">
+
+            <h2>Manage Volunteers</h2>
+
+            <button class="action-btn"
+                onclick="openCrudModal('volunteers')">
+                + Add New
+            </button>
+
+        </div>
+
+        <div style="overflow-x:auto;">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Join Date</th>
+                        <th>Actions</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+             ${volunteerList.map(volunteer => `
+
+                     <tr>
+
+    <td>${volunteer.name || "-"}</td>
+
+    <td>${volunteer.email || "-"}</td>
+
+    <td>${volunteer.phone || volunteer.mobile || "-"}</td>
+
+    <td>
+    ${
+        volunteer.joinDate ||
+        volunteer.JoinDate ||
+        (
+            volunteer.createdAt
+            ? new Date(volunteer.createdAt)
+                .toISOString()
+                .split("T")[0]
+            : "-"
+        )
+    }
+    </td>
+
+    <td class="edit-delete-icons">
+
+        <i class="fas fa-edit edit-item"
+         data-id="${volunteer._id}"
+           data-type="volunteers"></i>
+
+        <i class="fas fa-trash-alt delete-item"
+         data-id="${volunteer._id}"
+           data-type="volunteers"></i>
+
+    </td>
+
+</tr>
+
+                    `).join("")}
+
+                </tbody>
+
+            </table>
+
+        </div>
+        `;
+
+        document.getElementById(
+            "dynamicViewContainer"
+        ).innerHTML = html;
+
+        console.log("Volunteers rendered");
+
+        setTimeout(() => {
+
+            attachCrudEvents("volunteers");
+
+        }, 100);
+
+    } catch(error) {
+
+        console.log(
+            "Volunteer loading error:",
+            error
+        );
+
+    }
+}
 
     async function viewAgent(agentId) {
   currentAgentId = agentId;
@@ -1257,7 +1807,7 @@ async function approveStudent(studentId) {
   });
 
 
-  alert("Student approved successfully");
+ 
  renderDashboard();
   if (currentAgentId) {
     viewAgent(currentAgentId);
@@ -1304,18 +1854,20 @@ renderDashboard();
 }
     
     function renderReports() {
-        const totalDonated = donations.reduce((s,d)=>s+d.amount,0);
-        const html = `<h2>Reports & Analytics</h2><div class="stat-card"><h3>Total Donations Collected</h3><div class="stat-value">₹${totalDonated.toLocaleString()}</div></div><h3>Recent Activity</h3><ul><li>Members: ${members.length}</li><li>Students: ${students.length}</li><li>Farmers: ${farmers.length}</li><li>Events: ${events.length}</li><li>Agents: ${volunteers.length}</li></ul><button class="action-btn" id="exportFullReport">Export Full Report (CSV)</button>`;
+        const totalDonated =donations.reduce((s,d)=>s+(d.amount || 0),0);
+        const html = `<h2>Reports & Analytics</h2><div class="stat-card"><h3>Total Donations Collected</h3><div class="stat-value">₹${totalDonated.toLocaleString()}</div></div><h3>Recent Activity</h3><ul><li>Members: ${members.length}</li><li>Students: ${students.length}</li><li>Farmers: ${farmers.length}</li><li>Events: ${events.length}</li><li>Agents: ${agents.length}</li></ul><button class="action-btn" id="exportFullReport">Export Full Report (CSV)</button>`;
         document.getElementById('dynamicViewContainer').innerHTML = html;
         document.getElementById('exportFullReport')?.addEventListener('click', exportAllDataCSV);
     }
     
     // ======================= REFINED COMMUNICATIONS SECTION (properly aligned) =======================
-    function renderCommunications() {
-        const agentsList = volunteers;
+   async function renderCommunications() {
+
+    await loadAgents();
+       const agentsList = agents;
         const agentRows = agentsList.map(agent => `
             <div class="agent-row">
-                <input type="checkbox" class="agent-select-checkbox" value="${agent.id}" data-name="${agent.name}" data-email="${agent.email}" data-phone="${agent.phone}">
+                <input type="checkbox" class="agent-select-checkbox" value="${agent._id}" data-name="${agent.name}" data-email="${agent.email}" data-phone="${agent.phone}">
                 <div class="agent-info">
                     <span class="agent-name"><i class="fas fa-user-circle"></i> ${agent.name}</span>
                     <span class="agent-email"><i class="fas fa-envelope"></i> ${agent.email || '—'}</span>
@@ -1373,18 +1925,234 @@ renderDashboard();
         });
     }
     
-    // CRUD helpers same as original but kept
-    function attachCrudEvents(type) {
-        document.querySelectorAll('.edit-item').forEach(el => {
-            el.addEventListener('click', () => { let id = parseInt(el.dataset.id); let item = getItemByType(type, id); if(item) openCrudModal(type, item); });
-        });
-        document.querySelectorAll('.delete-item').forEach(el => {
-            el.addEventListener('click', () => { if(confirm('Delete permanently?')) { let id = parseInt(el.dataset.id); deleteItemByType(type, id); saveAll(); renderSection(type); } });
-        });
-        document.getElementById('addNewBtn')?.addEventListener('click', () => openCrudModal(type, null));
+function attachCrudEvents(type) {
+
+    // EDIT
+    document.querySelectorAll('.edit-item')
+    .forEach(el => {
+
+        el.addEventListener('click', () => {
+
+            const id = el.dataset.id;
+
+           if(type === 'agents') {
+
+    let item = getItemByType(type, id);
+
+    if(item) {
+        openCrudModal('agents', item);
     }
-    function getItemByType(type, id) { const map = { members, donations, students, farmers, schemes, events, volunteers }; return map[type]?.find(i => i.id === id); }
-    function deleteItemByType(type, id) { let arr = { members, donations, students, farmers, schemes, events, volunteers }[type]; const idx = arr.findIndex(i => i.id === id); if(idx !== -1) arr.splice(idx,1); }
+
+    return;
+
+}
+
+            let item = getItemByType(type, id);
+
+            if(item)
+                openCrudModal(type, item);
+
+        });
+
+    });
+
+    // DELETE
+    document.querySelectorAll('.delete-item')
+    .forEach(el => {
+
+        el.addEventListener('click', async () => {
+
+            if(!confirm('Delete permanently?'))
+                return;
+
+            const id = el.dataset.id;
+
+            try {
+
+                // STUDENTS
+                if(type === 'students') {
+
+                    await fetch(
+                        `https://punyamitra-backend.onrender.com/students/${id}`,
+                        {
+                            method: 'DELETE'
+                        }
+                    );
+
+                   await loadStudents();
+                   renderStudents();
+                }
+
+                // FARMERS
+                else if(type === 'farmers') {
+
+                    await fetch(
+`https://punyamitra-backend.onrender.com/farmers/${id}`,
+{
+    method: 'DELETE'
+}
+);
+
+                    await loadFarmers();
+                    renderFarmers();
+                }
+
+                // VOLUNTEERS
+                else if(type === 'volunteers') {
+
+                    editVolunteer(id);
+
+
+                    await fetch(
+                        `https://punyamitra-backend.onrender.com/api/volunteers/${id}`,
+                        {
+                            method: 'DELETE'
+                        }
+                    );
+
+                    await renderVolunteers();
+                }
+
+                // AGENTS
+                else if(type === 'agents') {
+
+                    await fetch(
+                        `https://punyamitra-backend.onrender.com/delete-agent/${id}`,
+                        {
+                            method: 'DELETE'
+                        }
+                    );
+
+                    await loadAgents();
+                    renderAgents();
+                }
+
+                else {
+
+                    deleteItemByType(type, id);
+
+                    renderSection(type);
+                }
+
+            } catch(error) {
+
+                console.log(error);
+
+                alert("Delete failed");
+            }
+
+        });
+
+    });
+
+    // ADD BUTTON
+    document.getElementById('addNewBtn')
+    ?.addEventListener('click', () => {
+
+        openCrudModal(type, null);
+
+    });
+
+}
+
+    function renderDocuments() {
+
+    const html = `
+
+    <div class="documents-section">
+
+        <h2>
+            <i class="fas fa-file-alt"></i>
+            Documents Center
+        </h2>
+
+        <p style="
+            margin-top:8px;
+            color:#64748b;
+        ">
+            Manage NGO uploaded documents,
+            certificates, reports and files.
+        </p>
+
+        <div style="
+            display:grid;
+            grid-template-columns:
+                repeat(auto-fit,minmax(240px,1fr));
+            gap:20px;
+            margin-top:24px;
+        ">
+
+            <div class="dashboard-card">
+                <i class="fas fa-file-pdf"></i>
+                <h3>Reports</h3>
+                <p>Access NGO reports</p>
+            </div>
+
+            <div class="dashboard-card">
+                <i class="fas fa-id-card"></i>
+                <h3>ID Proofs</h3>
+                <p>Volunteer & agent documents</p>
+            </div>
+
+            <div class="dashboard-card">
+                <i class="fas fa-certificate"></i>
+                <h3>Certificates</h3>
+                <p>Manage issued certificates</p>
+            </div>
+
+            <div class="dashboard-card">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>Uploads</h3>
+                <p>Track uploaded files</p>
+            </div>
+
+        </div>
+
+    </div>
+    `;
+
+    document.getElementById(
+        'dynamicViewContainer'
+    ).innerHTML = html;
+}
+
+function getItemByType(type, id) {
+
+    const map = {
+    members,
+    donations,
+    students,
+    farmers,
+    schemes,
+    events,
+    volunteers,
+    agents
+};
+
+    return map[type]?.find(
+        i => (i._id || i.id) == id
+    );
+}
+    function deleteItemByType(type, id) {
+
+    let arr = {
+        members,
+        donations,
+        students,
+        farmers,
+        schemes,
+        events,
+        volunteers,
+        agents
+    }[type];
+
+    const idx = arr.findIndex(
+        i => (i._id || i.id) == id
+    );
+
+    if(idx !== -1)
+        arr.splice(idx,1);
+}
     function openCrudModal(type, editItem) {
 
     const modal = document.getElementById('crudModal');
@@ -1467,7 +2235,7 @@ renderDashboard();
             <div>
                 <label style="font-weight:600;">Join Date</label>
                 <input
-                    type="date"
+                   type="text" placeholder="dd-mm-yyyy"
                     name="joinDate"
                     value="${editItem?.joinDate || ''}"
                     required
@@ -1603,7 +2371,7 @@ fieldsHtml = `
 
         <input 
             name="date"
-            type="date"
+          type="text" placeholder="dd-mm-yyyy"
             value="${editItem?.date || ''}"
             required
             style="
@@ -1626,9 +2394,9 @@ fieldsHtml = `
     <div style="display:flex; flex-direction:column; gap:16px; margin-top:20px;">
 
         <input 
-            name="name"
+            name="fullname"
             placeholder="Student Name"
-            value="${editItem?.name || ''}"
+            value="${editItem?.fullname || ''}"
             required
             style="
                 width:100%;
@@ -1641,9 +2409,9 @@ fieldsHtml = `
         >
 
         <input 
-            name="grade"
+            name="course"
             placeholder="Grade/Class"
-            value="${editItem?.grade || ''}"
+            value="${editItem?.course || ''}"
             required
             style="
                 width:100%;
@@ -1657,8 +2425,8 @@ fieldsHtml = `
 
         <input 
             name="date"
-            type="date"
-            value="${editItem?.date || ''}"
+           type="text" placeholder="dd-mm-yyyy"
+            value="${editItem?.date || editItem?.registeredAt || ''}"
             required
             style="
                 width:100%;
@@ -1681,9 +2449,9 @@ fieldsHtml = `
     <div style="display:flex; flex-direction:column; gap:16px; margin-top:20px;">
 
         <input 
-            name="name"
+            name="fullname"
             placeholder="Farmer Name"
-            value="${editItem?.name || ''}"
+            value="${editItem?.fullname || ''}"
             required
             style="
                 width:100%;
@@ -1698,7 +2466,7 @@ fieldsHtml = `
         <input 
             name="land"
             placeholder="Land Size"
-            value="${editItem?.land || ''}"
+            value="${editItem?.land || editItem?.farmSize || editItem?.landSize || ''}"
             required
             style="
                 width:100%;
@@ -1713,7 +2481,7 @@ fieldsHtml = `
         <input 
             name="crop"
             placeholder="Crop Type"
-            value="${editItem?.crop || ''}"
+            value="${editItem?.crop || editItem?.cropType || editItem?.crops || ''}"
             required
             style="
                 width:100%;
@@ -1727,6 +2495,8 @@ fieldsHtml = `
 
     </div>
 `;
+
+
 
     // ================= SCHEMES =================
 
@@ -1807,7 +2577,7 @@ fieldsHtml = `
 
         <input 
             name="date"
-            type="date"
+          type="text" placeholder="dd-mm-yyyy"s
             value="${editItem?.date || ''}"
             required
             style="
@@ -1876,7 +2646,8 @@ fieldsHtml = `
             "
         >
 
-        <input 
+       <input
+            type="text"
             name="phone"
             placeholder="Phone Number"
             value="${editItem?.phone || ''}"
@@ -1908,7 +2679,7 @@ fieldsHtml = `
 
         <input 
             name="joinDate"
-            type="date"
+            type="text" placeholder="dd-mm-yyyy"
             value="${editItem?.joinDate || ''}"
             required
             style="
@@ -1924,200 +2695,329 @@ fieldsHtml = `
     </div>
 `;
 
+
+// ================= AGENTS=================
+
+else if(type === 'agents')
+
+fieldsHtml = `
+<div style="display:flex; flex-direction:column; gap:16px; margin-top:20px;">
+
+    <input
+        name="name"
+        placeholder="Agent Full Name"
+        value="${editItem?.name || ''}"
+        required
+        style="
+            width:100%;
+            padding:14px 18px;
+            border:1px solid #dbe3f0;
+            border-radius:14px;
+        "
+    >
+
+    <input
+        name="email"
+        type="email"
+        placeholder="Email Address"
+        value="${editItem?.email || ''}"
+        required
+        style="
+            width:100%;
+            padding:14px 18px;
+            border:1px solid #dbe3f0;
+            border-radius:14px;
+        "
+    >
+
+    <input
+        name="phone"
+        placeholder="hone Number"
+        value="${editItem?.phone || ''}"
+        required
+        style="
+            width:100%;
+            padding:14px 18px;
+            border:1px solid #dbe3f0;
+            border-radius:14px;
+        "
+    >
+
+    <input
+        name="role"
+        placeholder="Role"
+        value="${editItem?.role || ''}"
+        required
+        style="
+            width:100%;
+            padding:14px 18px;
+            border:1px solid #dbe3f0;
+            border-radius:14px;
+        "
+    >
+
+    <input
+        name="joinDate"
+       type="text" placeholder="dd-mm-yyyy"
+        value="${editItem?.joinDate || ''}"
+        required
+        style="
+            width:100%;
+            padding:14px 18px;
+            border:1px solid #dbe3f0;
+            border-radius:14px;
+        "
+    >
+
+</div>
+`;
+
+
     fieldsDiv.innerHTML = fieldsHtml;
 
     modal.style.display = 'flex';
 
     const form = document.getElementById('crudForm');
 
-    const submitHandler = (e) => {
+   const submitHandler = async (e) => {
 
-        e.preventDefault();
+    e.preventDefault();
 
-        const formData = new FormData(form);
+    try {
 
-        const newItem = {};
+    const formData = new FormData(form);
 
-        for(let [k,v] of formData.entries()) {
-            newItem[k] = v;
-        }
+   const newItem = {};
 
-        if(editItem)
-            newItem.id = editItem.id;
-        else
-            newItem.id = Date.now();
+for(let [k,v] of formData.entries()) {
+    newItem[k] = v;
+}
+console.log("FORM DATA:", newItem);
 
-        if(type === 'donations')
-            newItem.amount = parseFloat(newItem.amount);
+newItem.phone = newItem.phone || "";
+newItem.joinDate = newItem.joinDate || "";
 
-        let targetArr = {
-            members,
-            donations,
-            students,
-            farmers,
-            schemes,
-            events,
-            volunteers
-        }[type];
 
-        if(editItem) {
+        // ================= STUDENTS =================
 
-            let idx = targetArr.findIndex(i => i.id === editItem.id);
+       if(type === 'students') {
 
-            if(idx !== -1)
-                targetArr[idx] = {
-                    ...targetArr[idx],
-                    ...newItem
-                };
+    const url = editItem
+? `https://punyamitra-backend.onrender.com/students/${editItem._id}`
+: 'https://punyamitra-backend.onrender.com/student-register';
 
-        } else {
+    const method = editItem ? 'PUT' : 'POST';
 
-            targetArr.push(newItem);
-        }
+    await fetch(url, {
 
-       if(type === 'volunteers') {
+        method,
 
-    fetch("https://punyamitra-backend.onrender.com/api/volunteers", {
-        method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            'Content-Type': 'application/json'
         },
+
         body: JSON.stringify(newItem)
-    })
-    .then(res => res.json())
-    .then(data => {
-
-        modal.style.display = 'none';
-
-        renderVolunteers();
 
     });
 
-} else {
+    modal.style.display = 'none';
 
-    saveAll();
+    await loadStudents();
+
+    renderStudents();
+}
+        // ================= FARMERS =================
+
+        else if(type === 'farmers') {
+
+    const url = editItem
+        ? `https://punyamitra-backend.onrender.com/farmers/${editItem._id}`
+        : `https://punyamitra-backend.onrender.com/farmer-register`;
+
+    const method = editItem ? 'PUT' : 'POST';
+
+    await fetch(url, {
+
+        method,
+
+        headers: {
+            'Content-Type': 'application/json'
+        },
+
+        body: JSON.stringify(newItem)
+
+    });
 
     modal.style.display = 'none';
 
-    renderSection(type);
+    await loadFarmers();
 
+    renderFarmers();
 }
 
-        form.removeEventListener('submit', submitHandler);
-    };
+        // ================= AGENTS =================
 
-    form.removeEventListener('submit', submitHandler);
+        else if(type === 'agents') {
 
-    form.addEventListener('submit', submitHandler);
+    if(editItem) {
+
+        await fetch(
+            `https://punyamitra-backend.onrender.com/update-agent/${editItem._id || editItem.id}`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newItem)
+            }
+        );
+
+    } else {
+
+        await fetch(
+            `https://punyamitra-backend.onrender.com/create-agent`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newItem)
+            }
+        );
+
+    }
+
+    modal.style.display = 'none';
+
+    await loadAgents();
+
+    renderAgents();
+
+    renderSection('agents');
 }
-    
+
+        // ================= MEMBERS / DONATIONS / EVENTS / SCHEMES =================
+
+        else {
+
+            if(editItem) {
+
+               let targetArr = {
+    members,
+    donations,
+    students,
+    farmers,
+    schemes,
+    events,
+    volunteers,
+    agents
+}[type];
+
+                let idx = targetArr.findIndex(
+                    i => i.id === editItem.id
+                );
+
+                if(idx !== -1) {
+                    e.preventDefault();
+                    targetArr[idx] = {
+                        ...targetArr[idx],
+                        ...newItem
+                    };
+                }
+
+            } else {
+
+               newItem.id = Date.now();
+
+let targetArr = {
+    members,
+    donations,
+    schemes,
+    events,
+    volunteers,
+    agents,
+    students,
+    farmers
+}[type];
+
+// ================= VOLUNTEERS =================
+
+if (type === "volunteers") {
+
+    const response = await fetch(
+        "https://punyamitra-backend.onrender.com/api/volunteers",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newItem)
+        }
+    );
+
+    const data = await response.json();
+
+    volunteers.push(data);
+
+    await renderVolunteers();
+}
+
+// ================= OTHER TYPES =================
+
+else {
+
+    if (!targetArr) {
+        targetArr = [];
+    }
+
+    targetArr.push(newItem);
+
+    if (type === "agents") agents = targetArr;
+    if (type === "students") students = targetArr;
+    if (type === "farmers") farmers = targetArr;
+    if(type === 'members') {
+    localStorage.setItem('members', JSON.stringify(members));
+}
+
+if(type === 'donations') {
+    localStorage.setItem('donations', JSON.stringify(donations));
+}
+
+if(type === 'events') {
+    localStorage.setItem('events', JSON.stringify(events));
+}
+
+if(type === 'schemes') {
+    localStorage.setItem('schemes', JSON.stringify(schemes));
+}
+}
+            }
+
+                       modal.style.display = 'none';
+
+            renderSection(type);
+
+        }
+
+    } catch(error) {
+
+        console.log(error);
+
+        alert("Update failed");
+
+    }
+
+};
+
+   form.onsubmit = submitHandler;
+
+   return;
+}
 
 function openAgentCreateModal() {
 
-    const modal = document.getElementById('crudModal');
+    openCrudModal('agents');
 
-    document.getElementById('crudModalTitle').innerText =
-        'Create New Agent';
-
-    document.getElementById('crudFields').innerHTML = `
-
-    <div style="
-        display:flex;
-        flex-direction:column;
-        gap:16px;
-        margin-top:20px;
-    ">
-
-        <input
-            type="text"
-            id="agentName"
-            placeholder="Agent Full Name"
-            required
-            style="
-                width:100%;
-                padding:14px 18px;
-                border:1px solid #dbe3f0;
-                border-radius:14px;
-            "
-        >
-
-        <input
-            type="email"
-            id="agentEmail"
-            placeholder="Email Address"
-            required
-            style="
-                width:100%;
-                padding:14px 18px;
-                border:1px solid #dbe3f0;
-                border-radius:14px;
-            "
-        >
-
-        <input
-            type="text"
-            id="agentPhone"
-            placeholder="Phone Number"
-            required
-            style="
-                width:100%;
-                padding:14px 18px;
-                border:1px solid #dbe3f0;
-                border-radius:14px;
-            "
-        >
-
-        <textarea
-            id="agentAddress"
-            placeholder="Address"
-            rows="3"
-            style="
-                width:100%;
-                padding:14px 18px;
-                border:1px solid #dbe3f0;
-                border-radius:14px;
-                resize:none;
-            "
-        ></textarea>
-
-        <input
-            type="date"
-            id="agentJoinDate"
-            style="
-                width:100%;
-                padding:14px 18px;
-                border:1px solid #dbe3f0;
-                border-radius:14px;
-            "
-        >
-
-        <div>
-            <label>Upload Photo</label>
-            <input type="file" id="agentPhoto">
-        </div>
-
-        <div>
-            <label>Upload Aadhaar</label>
-            <input type="file" id="agentAadhar">
-        </div>
-
-        <div>
-            <label>Upload PAN Card</label>
-            <input type="file" id="agentPan">
-        </div>
-
-        <button
-            type="button"
-            onclick="createAgentLogin()"
-            class="login-btn"
-        >
-            Create Agent
-        </button>
-
-    </div>
-    `;
-
-    modal.style.display = 'flex';
 }
 
 async function createAgentLogin() {
@@ -2134,8 +3034,13 @@ async function createAgentLogin() {
     const address =
         document.getElementById("agentAddress").value;
 
-    const joinDate =
-        document.getElementById("agentJoinDate").value;
+    const rawDate =
+document.getElementById("agentJoinDate").value;
+
+const parts = rawDate.split("/");
+
+const joinDate =
+`${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
 
     try {
 
@@ -2165,17 +3070,11 @@ async function createAgentLogin() {
 
             Password: ${data.agent.password}`
         );
-
-       document.getElementById('crudModal').style.display = 'none';
-
+            
        await loadAgents();
-
-        renderAgents();
-
-        renderDashboard();
-
-
-    } catch(error) {
+        renderSection('agents');
+        modal.style.display = 'none';
+            } catch(error) {
 
         console.log(error);
 
@@ -2185,6 +3084,7 @@ async function createAgentLogin() {
 
   function renderSection(section) {
     currentSection = section;
+
 
     if(section === 'dashboard') renderDashboard();
     else if(section === 'members') renderMembers();
@@ -2262,16 +3162,34 @@ async function createAgentLogin() {
     
     const loginContainer = document.getElementById('loginContainer');
     const dashboardWrapper = document.getElementById('dashboardWrapper');
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        loginContainer.style.display = 'none';
-        dashboardWrapper.style.display = 'block';
-        loadData();
-        loadAgents();
-        loadSavedProfile();
-        renderDashboard();
-        document.getElementById('notifBadge').innerText = '3';
-    });
+    const loginForm =
+document.getElementById(
+    'loginForm'
+);
+
+if(loginForm){
+
+    loginForm.addEventListener(
+        'submit',
+        (e) => {
+
+            e.preventDefault();
+
+            loginContainer.style.display = 'none';
+            dashboardWrapper.style.display = 'block';
+
+            loadAgents();
+            loadSavedProfile();
+            renderDashboard();
+
+            document.getElementById(
+                'notifBadge'
+            ).innerText = 0;
+
+        }
+    );
+
+}
    document.getElementById("logoutBtnSidebar")
     .addEventListener("click", () => {
 
@@ -2332,9 +3250,7 @@ async function createAgentLogin() {
     window.addEventListener('click', (e) => { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; });
     document.getElementById('closeCrudModal').addEventListener('click', () => document.getElementById('crudModal').style.display = 'none');
     document.querySelectorAll('.nav-item[data-section]').forEach(el => { el.addEventListener('click', () => { renderSection(el.dataset.section); }); });
-    dashboardWrapper.style.display = 'none';
-    loginContainer.style.display = 'flex';
-    loadVolunteers();
+    
 
     async function loadAdminProfile() {
 
@@ -2488,72 +3404,6 @@ function previewProfilePhoto(event) {
     reader.readAsDataURL(file);
 }
 
-function renderDocuments() {
-
-    const html = `
-        <div style="padding:20px;">
-
-            <div style="font-size:28px;font-weight:700;margin-bottom:20px;">
-                <i class="fas fa-file-certificate"></i>
-                Document Generation
-            </div>
-
-            <div style="display:grid;
-                        grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-                        gap:20px;">
-
-                <div class="management-card"
-                     style="background:white;
-                            padding:25px;
-                            border-radius:24px;">
-
-                    <h3>Membership Certificate</h3>
-                    <p>Generate member certificates</p>
-
-                    <button class="action-btn"
-                            onclick="alert('Certificate Generated Successfully')">
-                        Generate
-                    </button>
-                </div>
-
-                <div class="management-card"
-                     style="background:white;
-                            padding:25px;
-                            border-radius:24px;">
-
-                    <h3>Donation Receipt</h3>
-                    <p>Create donation payment receipts</p>
-
-                    <button class="action-btn"
-                            onclick="alert('Receipt Generated Successfully')">
-                        Generate
-                    </button>
-                </div>
-
-                <div class="management-card"
-                     style="background:white;
-                            padding:25px;
-                            border-radius:24px;">
-
-                    <h3>Volunteer ID Card</h3>
-                    <p>Create volunteer identity cards</p>
-
-                    <button class="action-btn"
-                            onclick="alert('ID Card Generated Successfully')">
-                        Generate
-                    </button>
-                </div>
-
-            </div>
-        </div>
-    `;
-
-    document.getElementById('dynamicViewContainer').innerHTML = html;
-}
-</script>
-
-<script>
-
 async function loadVolunteers() {
 
     try {
@@ -2564,63 +3414,64 @@ async function loadVolunteers() {
 
         const data = await response.json();
 
-        const table =
-            document.getElementById("volunteerTable");
+        volunteers = Array.isArray(data)
+            ? data
+            : (data.volunteers || []);
 
-        table.innerHTML = "";
+        console.log("Loaded volunteers:", volunteers)
 
-        data.volunteers.forEach(volunteer => {
+const volunteerTable = document.getElementById("volunteerTableBody");
 
-            table.innerHTML += `
-                <tr>
-                    <td>${volunteer.name}</td>
-                    <td>Volunteer</td>
-                    <td>
-                        ${new Date(
-                            volunteer._id
-                        ).toLocaleDateString()}
-                    </td>
-                    <td>
-                        <button>Edit</button>
-                        <button>Delete</button>
-                    </td>
-                </tr>
-            `;
+if (volunteerTable) {
 
-        });
+    volunteerTable.innerHTML = "";
+
+    volunteers.forEach((volunteer, index) => {
+
+        volunteerTable.innerHTML += `
+           <tr>
+    <td>${index + 1}</td>
+    <td>${volunteer.name || ""}</td>
+    <td>${volunteer.email || ""}</td>
+    <td>${volunteer.phone || volunteer.mobile || "-"}</td>
+    <td>
+${
+    volunteer.joinDate ||
+    volunteer.JoinDate ||
+    volunteer.date ||
+    (
+        volunteer.createdAt
+        ? new Date(volunteer.createdAt)
+            .toLocaleDateString("en-GB")
+        : "-"
+    )
+}
+</td>
+    <td>
+        <button onclick="editVolunteer('${volunteer._id}')">
+            Edit
+        </button>
+
+        <button onclick="deleteVolunteer('${volunteer._id}')">
+            Delete
+        </button>
+    </td>
+</tr>
+        `;
+    });
+}
+
 
     } catch(error) {
 
-        console.log(error);
-
-    }
-
-}
-
-loadVolunteers();
-loadAgents();
-loadStudents();
-loadFarmers();
-
-async function loadAgents() {
-
-    try {
-
-        const response = await fetch(
-            "https://punyamitra-backend.onrender.com/agents"
+        console.log(
+            "Volunteer loading error:",
+            error
         );
 
-        const data = await response.json();
-
-        agents = data;
-
-    } catch(error) {
-
-        console.log(error);
-
     }
-
 }
+
 
 async function loadStudents() {
 
@@ -2632,15 +3483,17 @@ async function loadStudents() {
 
         const data = await response.json();
 
-        students = data;
+        students = Array.isArray(data)
+            ? data
+            : (data.students || []);
 
+        console.log("Students loaded:", students);
 
     } catch(error) {
 
         console.log(error);
 
     }
-
 }
 
 async function loadFarmers() {
@@ -2653,8 +3506,46 @@ async function loadFarmers() {
 
         const data = await response.json();
 
-        farmers = data;
+        farmers = Array.isArray(data)
+            ? data
+            : (data.farmers || []);
 
+        console.log("Farmers loaded:", farmers);
+
+    } catch(error) {
+
+        console.log(error);
+
+    }
+}
+
+async function deleteAgent(agentId) {
+
+    if (!confirm("Delete this agent?"))
+        return;
+
+    try {
+
+        const response = await fetch(
+
+            `https://punyamitra-backend.onrender.com/delete-agent/${agentId}`,
+
+            {
+                method: "DELETE"
+            }
+
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+
+            alert("Agent deleted");
+
+            await loadAgents();
+            renderAgents();
+
+        }
 
     } catch(error) {
 
@@ -2663,10 +3554,11 @@ async function loadFarmers() {
     }
 
 }
-
 async function deleteVolunteer(id) {
 
-    const confirmDelete = confirm("Delete volunteer?");
+    const confirmDelete = confirm(
+        "Delete volunteer?"
+    );
 
     if (!confirmDelete) return;
 
@@ -2685,12 +3577,13 @@ async function deleteVolunteer(id) {
 
             alert("Volunteer Deleted Successfully");
 
+            await loadVolunteers();
+
             renderVolunteers();
 
         } else {
 
             alert("Delete Failed");
-
         }
 
     } catch (error) {
@@ -2698,11 +3591,210 @@ async function deleteVolunteer(id) {
         console.log(error);
 
         alert("Server Error");
+    }
+}
+
+// SEPARATE FUNCTION PROPERLY
+async function editVolunteer(id) {
+
+    const name = prompt("Enter volunteer name");
+    const email = prompt("Enter email");
+
+    if (!name || !email) return;
+
+    try {
+
+        const response = await fetch(
+            `https://punyamitra-backend.onrender.com/api/volunteers/${id}`,
+            {
+                method: "PUT",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                 body: JSON.stringify({
+                    name,
+                    email
+                 })
+            }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+
+            alert("Volunteer updated successfully");
+
+            volunteers = volunteers.map(v =>
+                v._id === id
+                    ? { ...v, name, email }
+                    : v
+            );
+
+            renderVolunteers();
+
+            renderSection('volunteers');
+
+        } else {
+
+            alert("Update failed");
+
+        }
+
+    } catch (error) {
+
+        console.log(error);
+
+        alert("Server error");
 
     }
 
 }
 
+function sendEmail(email) {
+
+    if(!email || email === "-") {
+
+        alert("No email found");
+        return;
+    }
+
+    window.location.href =
+        `mailto:${email}`;
+}
+
+function sendWhatsApp(phone) {
+
+    if(!phone || phone === "-") {
+
+        alert("No phone number found");
+        return;
+    }
+
+    phone = phone.replace(/\D/g, "");
+
+    window.open(
+        `https://wa.me/${phone}`,
+        "_blank"
+    );
+}
+
+// async function loadContactNotifications(){
+
+//     try{
+
+//         const response =
+//             await fetch("https://punyamitra-backend.onrender.com/api/contact");
+
+//         const data =
+//             await response.json();
+
+//         if(!data.success) return;
+
+//         const messages =
+//             data.messages || [];
+
+//         // UPDATE BADGE
+//         document.getElementById(
+//             "notifBadge"
+//         ).innerText =
+//             messages.length;
+
+//         // SHOW NOTIFICATIONS
+//         const container =
+//             document.getElementById(
+//                 "contactNotifications"
+//             );
+
+//         container.innerHTML = messages
+//         .slice(0,5)
+//         .map(msg => `
+
+//             <div class="notification-item">
+
+//                 <i class="fas fa-envelope"></i>
+
+//                 <div>
+
+//                     <strong>
+//                         ${msg.name}
+//                     </strong>
+
+//                     sent a message
+
+//                     <br>
+
+//                     <small>
+//                         ${msg.subject || ''}
+//                     </small>
+
+//                 </div>
+
+//             </div>
+
+//         `).join("");
+
+//     } catch(error){
+
+//         console.log(
+//             "Notification error:",
+//             error
+//         );
+//     }
+// }
+
+function toggleMessageMenu(event){
+
+    event.stopPropagation();
+
+    const menu =
+        document.getElementById(
+            "messageMenu"
+        );
+
+    console.log(menu);
+
+    if(menu.style.display === "block"){
+
+        menu.style.display = "none";
+
+    } else {
+
+        menu.style.display = "block";
+    }
+}
+
+document.addEventListener(
+    "click",
+    function(){
+
+        const menu =
+            document.getElementById(
+                "messageMenu"
+            );
+
+        if(menu){
+
+            menu.style.display = "none";
+        }
+    }
+);
+
+async function refreshAllData() {
+
+    await loadStudents();
+
+    await loadFarmers();
+
+    await loadVolunteers();
+
+    await loadAgents();
+
+}
+
 </script>
+
+
 </body>
 </html>

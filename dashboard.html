@@ -91,6 +91,7 @@ input{
         <h3>Create New Agent</h3>
         <input type="text" id="agentName" placeholder="Agent Name">
         <input type="email" id="agentEmail" placeholder="Agent Email">
+        <input type="text" id="agentPhone" placeholder="Agent Phone">
         <button onclick="createAgent()">Create Agent</button>
     </div>
 
@@ -118,29 +119,72 @@ function showCreateForm(){
 }
 
 async function createAgent() {
-  const name = document.getElementById("agentName").value;
-  const email = document.getElementById("agentEmail").value;
 
-  const response = await fetch("https://punyamitra-backend.onrender.com/create-agent", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ name, email })
-  });
+    const name =
+        document.getElementById("agentName").value;
 
-  const data = await response.json();
+    const email =
+        document.getElementById("agentEmail").value;
 
-alert(
-  `Agent created successfully\nID: ${data.agent.agent_id}\nPassword: ${data.agent.password}`
-);
+    const phone =
+        document.getElementById("agentPhone").value;
+
+    try {
+
+        const response = await fetch(
+            "https://punyamitra-backend.onrender.com/create-agent",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    name,
+                    email,
+                    phone
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+
+            alert(
+`Agent Created Successfully
+
+Agent ID: ${data.agent.agent_id}
+
+Password: ${data.agent.password}`
+            );
+
+           await loadAgents();
+
+            renderSection('agents');
+
+        } else {
+
+            alert("Agent creation failed");
+
+        }
+
+    } catch(error) {
+
+        console.log(error);
+
+        alert("Server Error");
+
+    }
+
+}
 
 document.getElementById("agentName").value = "";
 document.getElementById("agentEmail").value = "";
+document.getElementById("agentPhone").value = "";
 
-await loadDashboard();
-showCreateForm();
-}
+renderDashboard();
 
 async function loadDashboard() {
     const summary = await fetch("https://punyamitra-backend.onrender.com/dashboard-summary").then(r => r.json());
@@ -149,7 +193,7 @@ async function loadDashboard() {
     document.getElementById('studentsCount').textContent = summary.totalStudents || 0;
     document.getElementById('farmersCount').textContent = summary.totalFarmers || 0;
 
-    const agents = await fetch("https://punyamitra-backend.onrender.com/agents").then(r => r.json());
+    const agents = await fetch("https://punyamitra-backend.onrender.com/api/agents").then(r => r.json());
 
     const list = document.getElementById('agentList');
     list.innerHTML = '';
@@ -235,12 +279,11 @@ async function approveStudent(studentId) {
     method: "PUT"
   });
 
-   alert("Student approved successfully");
+   
 
   updateEnrollmentStatus(studentId, "Approved");
 
-  alert("Student approved successfully");
-  await loadDashboard();
+  await renderDashboard();
   if (currentAgentId) {
     viewAgent(currentAgentId);
   }
@@ -254,7 +297,7 @@ async function rejectStudent(studentId) {
   updateEnrollmentStatus(studentId, "Rejected");
 
   alert("Student rejected successfully");
-  await loadDashboard();
+  await renderDashboard();
   if (currentAgentId) {
     viewAgent(currentAgentId);
   }
@@ -270,7 +313,7 @@ async function approveFarmer(farmerId) {
 
   updateEnrollmentStatus(farmerId, "Approved");
 
-  await loadDashboard();
+  await renderDashboard();
   if (currentAgentId) {
     viewAgent(currentAgentId);
   }
@@ -282,14 +325,14 @@ async function rejectFarmer(id) {
 
   alert("Farmer rejected");
 
-  updateEnrollmentStatus(farmerId, "Rejected");
+  updateEnrollmentStatus(id, "Rejected");
 
-  await loadDashboard();
+  await renderDashboard();
   if (currentAgentId) {
     viewAgent(currentAgentId);
   }
 }
-loadDashboard();
+renderDashboard();
 </script>
 
 </body>
