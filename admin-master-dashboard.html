@@ -1452,18 +1452,31 @@ ${
     : "-"
 }
 </td>
+<td class="edit-delete-icons">
 
-    <td class="edit-delete-icons">
+<button
+onclick="viewAgent('${a.agent_id}')"
+style="
+background:#2563eb;
+color:white;
+border:none;
+padding:6px 12px;
+border-radius:8px;
+cursor:pointer;
+margin-right:8px;
+">
+View
+</button>
 
-        <i class="fas fa-edit edit-item"
-           data-id="${a._id || a.id}"
-           data-type="agents"></i>
+<i class="fas fa-edit edit-item"
+   data-id="${a._id || a.id}"
+   data-type="agents"></i>
 
-        <i class="fas fa-trash-alt delete-item"
-           data-id="${a._id || a.id}"
-           data-type="agents"></i>
+<i class="fas fa-trash-alt delete-item"
+   data-id="${a._id || a.id}"
+   data-type="agents"></i>
 
-    </td>
+</td>
 
 </tr>
 `).join('')}
@@ -2701,75 +2714,177 @@ fieldsHtml = `
 else if(type === 'agents')
 
 fieldsHtml = `
-<div style="display:flex; flex-direction:column; gap:16px; margin-top:20px;">
 
-    <input
-        name="name"
-        placeholder="Agent Full Name"
-        value="${editItem?.name || ''}"
-        required
-        style="
-            width:100%;
-            padding:14px 18px;
-            border:1px solid #dbe3f0;
-            border-radius:14px;
-        "
-    >
+<div style="
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+">
 
-    <input
-        name="email"
-        type="email"
-        placeholder="Email Address"
-        value="${editItem?.email || ''}"
-        required
-        style="
-            width:100%;
-            padding:14px 18px;
-            border:1px solid #dbe3f0;
-            border-radius:14px;
-        "
-    >
+<div>
+<label style="font-weight:600;">Agent Full Name</label>
 
-    <input
-        name="phone"
-        placeholder="hone Number"
-        value="${editItem?.phone || ''}"
-        required
-        style="
-            width:100%;
-            padding:14px 18px;
-            border:1px solid #dbe3f0;
-            border-radius:14px;
-        "
-    >
+<input
+type="text"
+name="name"
+placeholder="Agent Full Name"
+value="${editItem?.name || ''}"
+required
+style="
+width:100%;
+padding:14px;
+border-radius:14px;
+border:1px solid #dbe2ea;
+margin-top:8px;
+">
+</div>
 
-    <input
-        name="role"
-        placeholder="Role"
-        value="${editItem?.role || ''}"
-        required
-        style="
-            width:100%;
-            padding:14px 18px;
-            border:1px solid #dbe3f0;
-            border-radius:14px;
-        "
-    >
+<div>
+<label style="font-weight:600;">Email Address</label>
 
-    <input
-        name="joinDate"
-       type="text" placeholder="dd-mm-yyyy"
-        value="${editItem?.joinDate || ''}"
-        required
-        style="
-            width:100%;
-            padding:14px 18px;
-            border:1px solid #dbe3f0;
-            border-radius:14px;
-        "
-    >
+<input
+type="email"
+name="email"
+placeholder="Email Address"
+value="${editItem?.email || ''}"
+required
+style="
+width:100%;
+padding:14px;
+border-radius:14px;
+border:1px solid #dbe2ea;
+margin-top:8px;
+">
+</div>
+
+<div>
+<label style="font-weight:600;">Phone Number</label>
+
+<input
+type="text"
+name="phone"
+placeholder="Phone Number"
+value="${editItem?.phone || ''}"
+required
+style="
+width:100%;
+padding:14px;
+border-radius:14px;
+border:1px solid #dbe2ea;
+margin-top:8px;
+">
+</div>
+
+<div>
+<label style="font-weight:600;">Role</label>
+
+<input
+type="text"
+name="role"
+placeholder="Role"
+value="${editItem?.role || ''}"
+required
+style="
+width:100%;
+padding:14px;
+border-radius:14px;
+border:1px solid #dbe2ea;
+margin-top:8px;
+">
+</div>
+
+<div>
+<label style="font-weight:600;">Date of Birth</label>
+
+<input
+type="date"
+name="dob"
+value="${editItem?.dob || ''}"
+style="
+width:100%;
+padding:14px;
+border-radius:14px;
+border:1px solid #dbe2ea;
+margin-top:8px;
+">
+</div>
+
+<div>
+<label style="font-weight:600;">Join Date</label>
+
+<input
+type="text"
+name="joinDate"
+placeholder="dd-mm-yyyy"
+value="${editItem?.joinDate || ''}"
+style="
+width:100%;
+padding:14px;
+border-radius:14px;
+border:1px solid #dbe2ea;
+margin-top:8px;
+">
+</div>
 
 </div>
+
+<div style="
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:20px;
+margin-top:20px;
+">
+
+<div>
+<label style="font-weight:600;">Upload Aadhaar</label>
+
+<input
+type="file"
+name="aadhaar"
+accept=".pdf,image/*"
+style="
+width:100%;
+padding:12px;
+border-radius:14px;
+border:1px solid #dbe2ea;
+margin-top:8px;
+">
+</div>
+
+<div>
+<label style="font-weight:600;">Upload PAN</label>
+
+<input
+type="file"
+name="pan"
+accept=".pdf,image/*"
+style="
+width:100%;
+padding:12px;
+border-radius:14px;
+border:1px solid #dbe2ea;
+margin-top:8px;
+">
+</div>
+
+<div>
+<label style="font-weight:600;">Upload Photo</label>
+
+<input
+type="file"
+name="photo"
+accept="image/*"
+style="
+width:100%;
+padding:12px;
+border-radius:14px;
+border:1px solid #dbe2ea;
+margin-top:8px;
+">
+</div>
+
+</div>
+
 `;
 
 
@@ -2874,16 +2989,23 @@ newItem.joinDate = newItem.joinDate || "";
 
     } else {
 
-        await fetch(
-            `https://punyamitra-backend.onrender.com/create-agent`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(newItem)
-            }
-        );
+        const response = await fetch(
+"https://punyamitra-backend.onrender.com/create-agent",
+{
+   method: "POST",
+   body: new FormData(form)
+}
+);
+
+const data = await response.json();
+
+alert(`
+Agent Created Successfully
+
+Agent ID: ${data.agent.agent_id}
+
+Password: ${data.agent.password}
+`);
 
     }
 
@@ -3044,22 +3166,15 @@ const joinDate =
 
     try {
 
-        const response = await fetch(
-            "https://punyamitra-backend.onrender.com/create-agent",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    name,
-                    email,
-                    phone,
-                    address,
-                    joinDate
-                })
-            }
-        );
+        const formData = new FormData(form);
+
+const response = await fetch(
+"https://punyamitra-backend.onrender.com/create-agent",
+{
+    method: "POST",
+    body: formData
+}
+);
 
         const data = await response.json();
 
