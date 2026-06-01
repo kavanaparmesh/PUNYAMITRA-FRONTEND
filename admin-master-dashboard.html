@@ -3360,8 +3360,23 @@ if(loginForm){
     
     // Notifications & misc
     const notifPanel = document.getElementById('notificationPanel');
-    document.getElementById('notificationBell').addEventListener('click', (e) => { e.stopPropagation(); notifPanel.style.display = notifPanel.style.display === 'block' ? 'none' : 'block'; });
-    document.addEventListener('click', () => notifPanel.style.display = 'none');
+const notificationBell = document.getElementById('notificationBell');
+
+if (notifPanel && notificationBell) {
+
+    notificationBell.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        notifPanel.style.display =
+            notifPanel.style.display === 'block'
+            ? 'none'
+            : 'block';
+    });
+
+    document.addEventListener('click', () => {
+        notifPanel.style.display = 'none';
+    });
+}
     window.addEventListener('click', (e) => { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; });
     document.getElementById('closeCrudModal').addEventListener('click', () => document.getElementById('crudModal').style.display = 'none');
     document.querySelectorAll('.nav-item[data-section]').forEach(el => { el.addEventListener('click', () => { renderSection(el.dataset.section); }); });

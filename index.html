@@ -3353,8 +3353,11 @@ function openVolunteerSection() {
 
 <script>
 
-document.getElementById("volunteerForm")
-.addEventListener("submit", async function(e) {
+const volunteerForm = document.getElementById("volunteerForm");
+
+if (volunteerForm) {
+
+  volunteerForm.addEventListener("submit", async function(e) {
 
     e.preventDefault();
 
@@ -3390,6 +3393,7 @@ document.getElementById("volunteerForm")
     }
 
 });
+}
 
 
 
