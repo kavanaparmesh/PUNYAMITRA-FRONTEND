@@ -729,6 +729,7 @@
 
 
 <script>
+
     // ----------------------------- DATA MODELS (with localStorage) ---------------------------------
    
    window.onload = async function () {
@@ -737,10 +738,7 @@
         localStorage.getItem("adminLoggedIn");
 
     if (isLoggedIn !== "true") {
-
-        window.location.href =
-            "admin-login.html";
-
+        window.location.href = "admin-login.html";
         return;
     }
 
@@ -759,24 +757,17 @@
 
     }
 
-    // setInterval(
-    //     loadContactNotifications,
-    //     10000
-    // );
-
     await loadAgents();
     await loadStudents();
     await loadFarmers();
     await loadVolunteers();
-
-
+    await loadMembers();
 
     renderSection(currentSection);
 
+};  
 
-};
-
-  let members = JSON.parse(localStorage.getItem('members')) || [],
+  let members = [];
     donations = JSON.parse(localStorage.getItem('donations')) || [],
     students = [],
     farmers = [],
@@ -812,9 +803,22 @@
     }
 
     function exportAgentsCSV() {
-        const agentsData = agents.map(v => ({ Name: v.name, Email: v.email, Phone: v.phone, Role: v.role, JoinDate: v.joinDate }));
-        downloadCSV(agentsData, 'punyamitra_agents.csv');
-    }
+    const agentsData = agents.map(v => ({
+        Name: v.name,
+        Email: v.email,
+        Phone: v.phone,
+        Role: v.role,
+        JoinDate: v.joinDate,
+
+        PhotoFile: v.photoFile || '',
+        AadharFile: v.aadharFile || '',
+        PanFile: v.panFile || ''
+    }));
+
+    console.log("EXPORT DATA:", agentsData);
+
+    downloadCSV(agentsData, 'punyamitra_agents.csv');
+}
     function exportMembersCSV() {
         const memData = members.map(m => ({ Name: m.name, Email: m.email, JoinDate: m.joinDate }));
         downloadCSV(memData, 'punyamitra_members.csv');
@@ -1110,8 +1114,13 @@ document.querySelectorAll('.nav-item')
         members,
         ['Name', 'Email', 'Join Date'],
 
-        m => `
-        <tr>
+       m => {
+           console.log("member_id =", m.member_id);
+           console.log("id =", m.id);
+           console.log(JSON.stringify(m, null, 2));
+
+return `
+<tr>
 
             <td>${m.name}</td>
 
@@ -1121,23 +1130,34 @@ document.querySelectorAll('.nav-item')
 
             <td class="edit-delete-icons">
 
-                <i class="fas fa-edit edit-item"
-                   data-id="${m._id || m.id}"
-                   data-type="members"></i>
+<button
+onclick="viewMember('${m.member_id}')"
+class="view-btn">
+View
+</button>
 
-                <i class="fas fa-trash-alt delete-item"
-                   data-id="${m._id || m.id}"
-                   data-type="members"></i>
+<i class="fas fa-edit edit-item"
+data-id="${m.member_id || m.id}"
+data-type="members"></i>
 
-            </td>
+<i class="fas fa-trash-alt delete-item"
+data-id="${m.member_id || m.id}"
+data-type="members"></i>
+
+</td>
 
         </tr>
-        `
+`;
+}
     );
 
-    document.getElementById(
-        'dynamicViewContainer'
-    ).innerHTML = html;
+   document.getElementById(
+    'dynamicViewContainer'
+).innerHTML =
+    html +
+    `
+    <div id="details" style="margin-top:20px;"></div>
+    `;
 
     attachCrudEvents('members');
 }
@@ -1357,27 +1377,20 @@ async function loadAgents() {
 
     try {
 
-        const response = await fetch(
-            "https://punyamitra-backend.onrender.com/agents"
-        );
+        const response = await fetch(`${API}/agents`);
 
         const data = await response.json();
 
         agents = data;
 
-        console.log(
-            "Agents loaded:",
-            agents
-        );
+        console.log("Agents loaded:", agents);
 
-    } catch(error) {
+    } catch (error) {
 
-        console.log(
-            "Agent loading error:",
-            error
-        );
+        console.log("Agent loading error:", error);
 
     }
+
 }
     
     // AGENTS SECTION (vertical rows with email/wa icons)
@@ -1445,11 +1458,24 @@ ${agents.map(a => `
 
     <td>
 ${
-    a.joinDate || a.createdAt
-    ? new Date(
-        a.joinDate || a.createdAt
-    ).toISOString().split("T")[0]
-    : "-"
+(() => {
+   const d = a.joinDate || a.createdAt;
+
+if (!d) return "-";
+
+// If already stored as DD/MM/YYYY or D/M/YYYY, show it directly.
+if (typeof d === "string" && d.includes("/")) {
+    return d;
+}
+
+const date = new Date(d);
+
+if (isNaN(date.getTime())) {
+    return "-";
+}
+
+return date.toISOString().split("T")[0];
+})()
 }
 </td>
 <td class="edit-delete-icons">
@@ -1499,17 +1525,28 @@ View
         attachCrudEvents('agents');
 
     }, 100);
+
 }
 
-    async function editAgent(agentId) {
+async function loadMembers() {
 
+    const response = await fetch(`${API}/members`
+    );
+
+    members = await response.json();
+
+    console.log("Members loaded:", members);
+}
+    async function editAgent(agentId) {
+    
+    const name = prompt("Enter agent name");
     if (!name) return;
 
     try {
 
         const response = await fetch(
 
-            `https://punyamitra-backend.onrender.com/update-agent/${agentId}`,
+            `${API}/update-agent/${agentId}`,
 
             {
 
@@ -1560,7 +1597,7 @@ async function editStudent(id) {
     try {
 
         const response = await fetch(
-            `https://punyamitra-backend.onrender.com/students/${id}`,
+            `${API}/students/${id}`,
             {
                 method: "PUT",
 
@@ -1610,7 +1647,7 @@ async function editFarmer(id) {
     try {
 
         const response = await fetch(
-            `https://punyamitra-backend.onrender.com/farmers/${id}`,
+            `${API}/farmers/${id}`,
             {
                 method: "PUT",
 
@@ -1655,7 +1692,7 @@ async function editFarmer(id) {
 
     try {
 
-        const response = await fetch("https://punyamitra-backend.onrender.com/api/volunteers");
+        const response = await fetch(`${API}/api/volunteers`);
 
         const data = await response.json();
 
@@ -1764,16 +1801,82 @@ async function editFarmer(id) {
     }
 }
 
-    async function viewAgent(agentId) {
+async function viewAgent(agentId) {
   currentAgentId = agentId;
   try {
-    const response = await fetch(`https://punyamitra-backend.onrender.com/agent/${agentId}`);
+    const response = await fetch(`${API}/agent/${agentId}`);
+   console.log("Status:", response.status);
+   console.log("OK:", response.ok);
+   
     const data = await response.json();
+
+    console.log(data);
+
+    console.log("Agent API Response:", data);
 
     const details = document.getElementById("details");
 
+    const agent = data.agent;
+
+    
+
     details.innerHTML = `
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-bottom:20px;">
+<div style="
+background:#fff;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+box-shadow:0 2px 8px rgba(0,0,0,.1);
+">
+
+<h2>Agent Details</h2>
+
+<p><b>Name:</b> ${agent.name}</p>
+<p><b>Email:</b> ${agent.email}</p>
+<p><b>Phone:</b> ${agent.phone}</p>
+<p><b>Role:</b> ${agent.role}</p>
+
+<hr>
+
+<p><b>Photo</b></p>
+
+${
+agent.photoFile
+?
+`<img
+src="${API}${agent.photoFile}"
+style="width:180px;border-radius:8px;">`
+:
+"No Photo Uploaded"
+}
+
+<p><b>Aadhar</b></p>
+
+${
+agent.aadharFile
+?
+`<a href="${API}${agent.aadharFile}" target="_blank">
+View Aadhar
+</a>`
+:
+"No Aadhar Uploaded"
+}
+
+<p><b>PAN</b></p>
+
+${
+agent.panFile
+?
+`<a href="${API}${agent.panFile}" target="_blank">
+View PAN
+</a>`
+:
+"No PAN Uploaded"
+}
+
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-bottom:20px;">
         <div class="summary-card">
           <h3>Total Students</h3>
           <h2>${data.students.length}</h2>
@@ -1814,8 +1917,90 @@ async function editFarmer(id) {
   }
 }
 
+async function viewMember(memberId) {
+
+  try {
+
+    const response = await fetch(
+    `${API}/member/${memberId}`
+);
+
+    const data = await response.json();
+
+    const details = document.getElementById("details");
+
+    console.log("details =", details);
+
+    const member = data.member;
+
+    console.log(member);
+
+    details.innerHTML = `
+<div style="
+background:#fff;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+box-shadow:0 2px 8px rgba(0,0,0,.1);
+">
+
+<h2>Member Details</h2>
+
+<p><b>Name:</b> ${member.name}</p>
+<p><b>Email:</b> ${member.email}</p>
+<p><b>Phone:</b> ${member.phone}</p>
+<p><b>Role:</b> ${member.role}</p>
+
+<hr>
+
+<p><b>Photo</b></p>
+
+${
+member.photoFile
+?
+`<img
+src="${API}${member.photoFile}"
+style="width:180px;border-radius:8px;">`
+:
+"No Photo Uploaded"
+}
+
+<p><b>Aadhar</b></p>
+
+${
+member.aadharFile
+?
+`<a href="${API}${member.aadharFile}" target="_blank">
+View Aadhar
+</a>`
+:
+"No Aadhar Uploaded"
+}
+
+<p><b>PAN</b></p>
+
+${
+member.panFile
+?
+`<a href="${API}${member.panFile}" target="_blank">
+View PAN
+</a>`
+:
+"No PAN Uploaded"
+}
+
+</div>
+`;
+
+  } catch (error) {
+    console.error("View member failed:", error);
+  }
+
+}
+
+
 async function approveStudent(studentId) {
-  await fetch(`https://punyamitra-backend.onrender.com/approve-student/${studentId}`, {
+  await fetch(`${API}/approve-student/${studentId}`, {
     method: "PUT"
   });
 
@@ -1828,7 +2013,7 @@ async function approveStudent(studentId) {
 }
 
 async function rejectStudent(studentId) {
-  await fetch(`https://punyamitra-backend.onrender.com/reject-student/${studentId}`, {
+  await fetch(`${API}/reject-student/${studentId}`, {
     method: "PUT"
   });
 
@@ -1841,7 +2026,7 @@ async function rejectStudent(studentId) {
 }
 
 async function approveFarmer(farmerId) {
-  await fetch(`https://punyamitra-backend.onrender.com/approve-farmer/${farmerId}`, {
+  await fetch(`${API}/approve-farmer/${farmerId}`, {
     method: "PUT"
   });
 
@@ -1854,7 +2039,7 @@ async function approveFarmer(farmerId) {
   }
 }
 async function rejectFarmer(id) {
-  await fetch(`https://punyamitra-backend.onrender.com/reject-farmer/${id}`, {
+  await fetch(`${API}/reject-farmer/${id}`, {
     method: "PUT" 
   });
 
@@ -1986,7 +2171,7 @@ function attachCrudEvents(type) {
                 if(type === 'students') {
 
                     await fetch(
-                        `https://punyamitra-backend.onrender.com/students/${id}`,
+                        `${API}/students/${id}`,
                         {
                             method: 'DELETE'
                         }
@@ -2000,7 +2185,7 @@ function attachCrudEvents(type) {
                 else if(type === 'farmers') {
 
                     await fetch(
-`https://punyamitra-backend.onrender.com/farmers/${id}`,
+`${API}/farmers/${id}`,
 {
     method: 'DELETE'
 }
@@ -2017,7 +2202,7 @@ function attachCrudEvents(type) {
 
 
                     await fetch(
-                        `https://punyamitra-backend.onrender.com/api/volunteers/${id}`,
+                        `${API}/api/volunteers/${id}`,
                         {
                             method: 'DELETE'
                         }
@@ -2029,12 +2214,12 @@ function attachCrudEvents(type) {
                 // AGENTS
                 else if(type === 'agents') {
 
-                    await fetch(
-                        `https://punyamitra-backend.onrender.com/delete-agent/${id}`,
-                        {
-                            method: 'DELETE'
-                        }
-                    );
+                   await fetch(
+    `${API}/delete-agent/${id}`,
+    {
+        method: "DELETE"
+    }
+);
 
                     await loadAgents();
                     renderAgents();
@@ -2836,11 +3021,11 @@ margin-top:20px;
 ">
 
 <div>
-<label style="font-weight:600;">Upload Aadhaar</label>
+<label style="font-weight:600;">Upload Aadhar</label>
 
 <input
 type="file"
-name="aadhaar"
+name="aadhar"
 accept=".pdf,image/*"
 style="
 width:100%;
@@ -2907,6 +3092,18 @@ margin-top:8px;
 for(let [k,v] of formData.entries()) {
     newItem[k] = v;
 }
+if (newItem.photo && newItem.photo.name) {
+    newItem.photoFileName = newItem.photo.name;
+}
+
+if (newItem.aadhar && newItem.aadhar.name) {
+    newItem.aadharFileName = newItem.aadhar.name;
+}
+
+if (newItem.pan && newItem.pan.name) {
+    newItem.panFileName = newItem.pan.name;
+}
+
 console.log("FORM DATA:", newItem);
 
 newItem.phone = newItem.phone || "";
@@ -2989,13 +3186,13 @@ newItem.joinDate = newItem.joinDate || "";
 
     } else {
 
-        const response = await fetch(
-"https://punyamitra-backend.onrender.com/create-agent",
-{
-   method: "POST",
-   body: new FormData(form)
-}
-);
+        const response = await fetch(`${API}/create-agent`, {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ name, email })
+});
 
 const data = await response.json();
 
@@ -3084,6 +3281,40 @@ if (type === "volunteers") {
     await renderVolunteers();
 }
 
+// ================= MEMBERS =================
+
+else if (type === "members") {
+const response = await fetch(
+    `${API}/create-member`,
+    {
+        method: "POST",
+        body: new FormData(form)
+    }
+);
+
+    const data = await response.json();
+
+    if (data.success) {
+
+        alert(`
+Member Created Successfully
+
+Member ID: ${data.member.member_id}
+
+Password: ${data.member.password}
+`);
+
+        await loadMembers();
+        renderMembers();
+
+    } else {
+
+        alert("Member creation failed.");
+
+    }
+
+}
+
 // ================= OTHER TYPES =================
 
 else {
@@ -3169,7 +3400,7 @@ const joinDate =
         const formData = new FormData(form);
 
 const response = await fetch(
-"https://punyamitra-backend.onrender.com/create-agent",
+`${API}/create-agent`,
 {
     method: "POST",
     body: formData
@@ -3656,15 +3887,12 @@ async function deleteAgent(agentId) {
 
     try {
 
-        const response = await fetch(
-
-            `https://punyamitra-backend.onrender.com/delete-agent/${agentId}`,
-
-            {
-                method: "DELETE"
-            }
-
-        );
+       const response = await fetch(
+    `${API}/delete-agent/${agentId}`,
+    {
+        method: "DELETE"
+    }
+);
 
         const data = await response.json();
 
@@ -3920,6 +4148,8 @@ async function refreshAllData() {
     await loadVolunteers();
 
     await loadAgents();
+
+    await loadMembers();
 
 }
 

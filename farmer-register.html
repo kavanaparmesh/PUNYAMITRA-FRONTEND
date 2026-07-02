@@ -173,8 +173,8 @@
   </div>
 </div>
       <div class="form-group">
-        <label>Aadhaar Number (optional)</label>
-        <input type="text" id="aadhaar" placeholder="12-digit number" pattern="[0-9]{12}">
+        <label>Aadhar Number (optional)</label>
+        <input type="text" id="aadhar" placeholder="12-digit number" pattern="[0-9]{12}">
       </div>
 
       <div class="row-2col">
@@ -217,9 +217,9 @@ document.getElementById('farmerForm').addEventListener('submit', async function(
     return;
   }
 
-  const aadhaar = document.getElementById('aadhaar').value;
-  if (aadhaar && !/^\d{12}$/.test(aadhaar)) {
-    alert("Aadhaar number must be 12 digits (if provided).");
+  const aadhar = document.getElementById('aadhar').value;
+  if (aadhar && !/^\d{12}$/.test(aadhar)) {
+    alert("Aadhar number must be 12 digits (if provided).");
     return;
   }
 
@@ -231,7 +231,7 @@ document.getElementById('farmerForm').addEventListener('submit', async function(
   address: document.getElementById('address').value,
   farmSize: document.getElementById('farmSize').value,
   crop: document.getElementById('crop').value,
-  aadhaar: aadhaar,
+  aadhar: aadhar,
   password: pwd,
   agent_id: localStorage.getItem("agentId"),
   registeredAt: new Date().toISOString()
