@@ -729,7 +729,9 @@
 
 
 <script>
-
+     
+    const API = "https://punyamitra-backend.onrender.com";
+     
     // ----------------------------- DATA MODELS (with localStorage) ---------------------------------
    
    window.onload = async function () {
@@ -750,7 +752,7 @@
 
     } catch (error) {
 
-        console.log(
+        console.error(
             "Dashboard loading error:",
             error
         );
@@ -814,8 +816,6 @@
         AadharFile: v.aadharFile || '',
         PanFile: v.panFile || ''
     }));
-
-    console.log("EXPORT DATA:", agentsData);
 
     downloadCSV(agentsData, 'punyamitra_agents.csv');
 }
@@ -941,8 +941,23 @@ document.querySelectorAll('.nav-item')
 
     function renderDashboard() {
     const totalMembers = members.length;
-    const donationSum = donations.reduce((s,d)=>s+(d.amount||0),0);
-    const upcoming = events.filter(e => new Date(e.date) > new Date()).length;
+    const donationSum = donations.reduce((sum, donation) => {
+    return sum + Number(donation.amount || 0);
+}, 0);
+
+const today = new Date();
+
+const upcoming = events.filter(event => {
+
+    if (!event.date) return false;
+
+    const [day, month, year] = event.date.split("/").map(Number);
+
+    const eventDate = new Date(year, month - 1, day);
+
+    return eventDate >= today;
+
+}).length;
      const volunteerCount =
         volunteers ? volunteers.length : 0;
 
@@ -959,7 +974,7 @@ document.querySelectorAll('.nav-item')
             <div class="stat-card">
                 <div>Donations</div>
                 <div class="stat-value">
-                    ₹${(donationSum/100000).toFixed(1)}L
+₹${donationSum.toLocaleString("en-IN")}
                 </div>
                 <div>+15%</div>
             </div>
@@ -996,7 +1011,7 @@ document.querySelectorAll('.nav-item')
                     <h4>Active Donations</h4>
 
                     <div class="stat-value">
-                        ₹${(donationSum/100000).toFixed(1)}L
+                        ₹${donationSum.toLocaleString("en-IN")}
                     </div>
                 </div>
 
@@ -1115,10 +1130,6 @@ document.querySelectorAll('.nav-item')
         ['Name', 'Email', 'Join Date'],
 
        m => {
-           console.log("member_id =", m.member_id);
-           console.log("id =", m.id);
-           console.log(JSON.stringify(m, null, 2));
-
 return `
 <tr>
 
@@ -1137,12 +1148,12 @@ View
 </button>
 
 <i class="fas fa-edit edit-item"
-data-id="${m.member_id || m.id}"
-data-type="members"></i>
+    data-id="${m._id}"
+    data-type="members"></i>
 
 <i class="fas fa-trash-alt delete-item"
-data-id="${m.member_id || m.id}"
-data-type="members"></i>
+    data-id="${m._id}"
+    data-type="members"></i>
 
 </td>
 
@@ -1382,14 +1393,9 @@ async function loadAgents() {
         const data = await response.json();
 
         agents = data;
-
-        console.log("Agents loaded:", agents);
-
     } catch (error) {
-
-        console.log("Agent loading error:", error);
-
-    }
+    console.error("Failed to load agents:", error);
+}
 
 }
     
@@ -1534,8 +1540,6 @@ async function loadMembers() {
     );
 
     members = await response.json();
-
-    console.log("Members loaded:", members);
 }
     async function editAgent(agentId) {
     
@@ -1581,7 +1585,7 @@ async function loadMembers() {
 
     } catch(error) {
 
-        console.log(error);
+        console.error(error);
 
     }
 
@@ -1629,7 +1633,7 @@ async function editStudent(id) {
 
     } catch (error) {
 
-        console.log(error);
+        console.error(error);
 
         alert("Server error");
 
@@ -1679,7 +1683,7 @@ async function editFarmer(id) {
 
     } catch (error) {
 
-        console.log(error);
+        console.error(error);
 
         alert("Server error");
 
@@ -1691,17 +1695,7 @@ async function editFarmer(id) {
     async function renderVolunteers() {
 
     try {
-
-        const response = await fetch(`${API}/api/volunteers`);
-
-        const data = await response.json();
-
-        const volunteerList = Array.isArray(data)
-            ? data
-            : (data.volunteers || []);
-
-        volunteers = volunteerList;
-
+        const volunteerList = volunteers;
         const html = `
         <div class="flex-between">
 
@@ -1782,9 +1776,6 @@ async function editFarmer(id) {
         document.getElementById(
             "dynamicViewContainer"
         ).innerHTML = html;
-
-        console.log("Volunteers rendered");
-
         setTimeout(() => {
 
             attachCrudEvents("volunteers");
@@ -1793,11 +1784,10 @@ async function editFarmer(id) {
 
     } catch(error) {
 
-        console.log(
+        console.error(
             "Volunteer loading error:",
             error
         );
-
     }
 }
 
@@ -1805,20 +1795,9 @@ async function viewAgent(agentId) {
   currentAgentId = agentId;
   try {
     const response = await fetch(`${API}/agent/${agentId}`);
-   console.log("Status:", response.status);
-   console.log("OK:", response.ok);
-   
     const data = await response.json();
-
-    console.log(data);
-
-    console.log("Agent API Response:", data);
-
     const details = document.getElementById("details");
-
     const agent = data.agent;
-
-    
 
     details.innerHTML = `
 <div style="
@@ -1929,12 +1908,7 @@ async function viewMember(memberId) {
 
     const details = document.getElementById("details");
 
-    console.log("details =", details);
-
     const member = data.member;
-
-    console.log(member);
-
     details.innerHTML = `
 <div style="
 background:#fff;
@@ -2164,12 +2138,10 @@ function attachCrudEvents(type) {
                 return;
 
             const id = el.dataset.id;
-
             try {
 
                 // STUDENTS
                 if(type === 'students') {
-
                     await fetch(
                         `${API}/students/${id}`,
                         {
@@ -2183,7 +2155,6 @@ function attachCrudEvents(type) {
 
                 // FARMERS
                 else if(type === 'farmers') {
-
                     await fetch(
 `${API}/farmers/${id}`,
 {
@@ -2196,45 +2167,47 @@ function attachCrudEvents(type) {
                 }
 
                 // VOLUNTEERS
-                else if(type === 'volunteers') {
+               else if(type === 'volunteers') {
 
-                    editVolunteer(id);
+    await fetch(`${API}/api/volunteers/${id}`, {
+        method:"DELETE"
+    });
 
-
-                    await fetch(
-                        `${API}/api/volunteers/${id}`,
-                        {
-                            method: 'DELETE'
-                        }
-                    );
-
-                    await renderVolunteers();
-                }
+    await loadVolunteers();
+    renderVolunteers();
+}
 
                 // AGENTS
-                else if(type === 'agents') {
+else if(type === 'agents') {
 
-                   await fetch(
-    `${API}/delete-agent/${id}`,
-    {
+    await fetch(`${API}/delete-agent/${id}`, {
         method: "DELETE"
-    }
-);
+    });
 
-                    await loadAgents();
-                    renderAgents();
-                }
+    await loadAgents();
+    renderAgents();
+}
 
-                else {
+// MEMBERS
+else if(type === 'members') {
 
-                    deleteItemByType(type, id);
+    await fetch(`${API}/members/${id}`, {
+        method: "DELETE"
+    });
 
-                    renderSection(type);
-                }
+    await loadMembers();
+    renderMembers();
+}
+else {
+
+    deleteItemByType(type, id);
+
+    renderSection(type);
+}
 
             } catch(error) {
 
-                console.log(error);
+                console.error(error);
 
                 alert("Delete failed");
             }
@@ -2253,7 +2226,7 @@ function attachCrudEvents(type) {
 
 }
 
-    function renderDocuments() {
+function renderDocuments() {
 
     const html = `
 
@@ -2475,55 +2448,58 @@ function getItemByType(type, id) {
         ">
 
             <div>
-                <label style="font-weight:600;">Upload Photo</label>
+    <label style="font-weight:600;">Upload Photo</label>
 
-                <input
-                    type="file"
-                    name="photo"
-                    accept="image/*"
-                    style="
-                        width:100%;
-                        padding:12px;
-                        border-radius:14px;
-                        border:1px solid #dbe2ea;
-                        margin-top:8px;
-                    "
-                >
-            </div>
+    <input
+        type="file"
+        id="photo"
+        name="photo"
+        accept="image/*"
+        style="
+            width:100%;
+            padding:12px;
+            border-radius:14px;
+            border:1px solid #dbe2ea;
+            margin-top:8px;
+        "
+    >
+</div>
 
-            <div>
-                <label style="font-weight:600;">Upload Aadhar Card</label>
+<div>
+    <label style="font-weight:600;">Upload Aadhar Card</label>
 
-                <input
-                    type="file"
-                    name="aadhar"
-                    accept=".pdf,image/*"
-                    style="
-                        width:100%;
-                        padding:12px;
-                        border-radius:14px;
-                        border:1px solid #dbe2ea;
-                        margin-top:8px;
-                    "
-                >
-            </div>
+    <input
+        type="file"
+        id="aadhaar"
+        name="aadhaar"
+        accept=".pdf,image/*"
+        style="
+            width:100%;
+            padding:12px;
+            border-radius:14px;
+            border:1px solid #dbe2ea;
+            margin-top:8px;
+        "
+    >
+</div>
 
-            <div>
-                <label style="font-weight:600;">Upload PAN Card</label>
+<div>
+    <label style="font-weight:600;">Upload PAN Card</label>
 
-                <input
-                    type="file"
-                    name="pan"
-                    accept=".pdf,image/*"
-                    style="
-                        width:100%;
-                        padding:12px;
-                        border-radius:14px;
-                        border:1px solid #dbe2ea;
-                        margin-top:8px;
-                    "
-                >
-            </div>
+    <input
+        type="file"
+        id="pan"
+        name="pan"
+        accept=".pdf,image/*"
+        style="
+            width:100%;
+            padding:12px;
+            border-radius:14px;
+            border:1px solid #dbe2ea;
+            margin-top:8px;
+        "
+    >
+</div>
 
         </div>
 
@@ -3025,7 +3001,7 @@ margin-top:20px;
 
 <input
 type="file"
-name="aadhar"
+name="aadhaar"
 accept=".pdf,image/*"
 style="
 width:100%;
@@ -3079,44 +3055,30 @@ margin-top:8px;
 
     const form = document.getElementById('crudForm');
 
-   const submitHandler = async (e) => {
+  const submitHandler = async (e) => {
 
     e.preventDefault();
 
     try {
 
-    const formData = new FormData(form);
+        const formData = new FormData(form);
 
-   const newItem = {};
+        for (const pair of formData.entries()) {
+        }
 
-for(let [k,v] of formData.entries()) {
-    newItem[k] = v;
-}
-if (newItem.photo && newItem.photo.name) {
-    newItem.photoFileName = newItem.photo.name;
-}
+        const newItem = {};
 
-if (newItem.aadhar && newItem.aadhar.name) {
-    newItem.aadharFileName = newItem.aadhar.name;
-}
-
-if (newItem.pan && newItem.pan.name) {
-    newItem.panFileName = newItem.pan.name;
-}
-
-console.log("FORM DATA:", newItem);
-
-newItem.phone = newItem.phone || "";
-newItem.joinDate = newItem.joinDate || "";
-
+        for (const [key, value] of formData.entries()) {
+            newItem[key] = value;
+        }
 
         // ================= STUDENTS =================
 
        if(type === 'students') {
 
     const url = editItem
-? `https://punyamitra-backend.onrender.com/students/${editItem._id}`
-: 'https://punyamitra-backend.onrender.com/student-register';
+? `${API}/students/${editItem._id}`
+: `${API}/student-register`;
 
     const method = editItem ? 'PUT' : 'POST';
 
@@ -3143,9 +3105,8 @@ newItem.joinDate = newItem.joinDate || "";
         else if(type === 'farmers') {
 
     const url = editItem
-        ? `https://punyamitra-backend.onrender.com/farmers/${editItem._id}`
-        : `https://punyamitra-backend.onrender.com/farmer-register`;
-
+    ? `${API}/farmers/${editItem._id}`
+    : `${API}/farmer-register`;
     const method = editItem ? 'PUT' : 'POST';
 
     await fetch(url, {
@@ -3173,8 +3134,8 @@ newItem.joinDate = newItem.joinDate || "";
 
     if(editItem) {
 
-        await fetch(
-            `https://punyamitra-backend.onrender.com/update-agent/${editItem._id || editItem.id}`,
+       await fetch(
+    `${API}/update-agent/${editItem._id}`,
             {
                 method: 'PUT',
                 headers: {
@@ -3186,23 +3147,28 @@ newItem.joinDate = newItem.joinDate || "";
 
     } else {
 
-        const response = await fetch(`${API}/create-agent`, {
+for (const pair of formData.entries()) {
+}
+
+const response = await fetch(`${API}/create-agent`, {
     method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ name, email })
+    body: formData
 });
 
 const data = await response.json();
 
-alert(`
-Agent Created Successfully
+if (!response.ok) {
+    alert(data.message || "Agent creation failed");
+    return;
+}
+
+alert(
+`Agent Created Successfully
 
 Agent ID: ${data.agent.agent_id}
 
-Password: ${data.agent.password}
-`);
+Password: ${data.agent.password}`
+);
 
     }
 
@@ -3233,16 +3199,23 @@ Password: ${data.agent.password}
 }[type];
 
                 let idx = targetArr.findIndex(
-                    i => i.id === editItem.id
-                );
+    i => (i.id || i._id) === (editItem.id || editItem._id)
+);
 
-                if(idx !== -1) {
-                    e.preventDefault();
-                    targetArr[idx] = {
-                        ...targetArr[idx],
-                        ...newItem
-                    };
-                }
+               if (idx !== -1) {
+
+    targetArr[idx] = {
+        ...targetArr[idx],
+        ...newItem
+    };
+
+    // Save the updated array
+    if (type === "events") {
+        localStorage.setItem("events", JSON.stringify(events));
+    }
+
+    renderSection("events");
+}
 
             } else {
 
@@ -3264,7 +3237,7 @@ let targetArr = {
 if (type === "volunteers") {
 
     const response = await fetch(
-        "https://punyamitra-backend.onrender.com/api/volunteers",
+        `${API}/api/volunteers`,
         {
             method: "POST",
             headers: {
@@ -3275,10 +3248,8 @@ if (type === "volunteers") {
     );
 
     const data = await response.json();
-
-    volunteers.push(data);
-
-    await renderVolunteers();
+    await loadVolunteers();
+    renderVolunteers();
 }
 
 // ================= MEMBERS =================
@@ -3354,7 +3325,7 @@ if(type === 'schemes') {
 
     } catch(error) {
 
-        console.log(error);
+        console.error(error);
 
         alert("Update failed");
 
@@ -3422,7 +3393,7 @@ const response = await fetch(
         modal.style.display = 'none';
             } catch(error) {
 
-        console.log(error);
+        console.error(error);
 
         alert("Failed to create agent");
     }
@@ -3664,7 +3635,7 @@ if (notifPanel && notificationBell) {
 
     } catch(error) {
 
-        console.log(error);
+        console.error(error);
     }
 }
 
@@ -3739,7 +3710,7 @@ async function saveAdminProfile() {
  
     } catch(error) {
 
-        console.log(error);
+        console.error(error);
 
         alert("❌ Backend Connection Error");
     }
@@ -3769,18 +3740,9 @@ async function loadVolunteers() {
 
     try {
 
-        const response = await fetch(
-            "https://punyamitra-backend.onrender.com/api/volunteers"
-        );
-
+       const response = await fetch(`${API}/api/volunteers`);
         const data = await response.json();
-
-        volunteers = Array.isArray(data)
-            ? data
-            : (data.volunteers || []);
-
-        console.log("Loaded volunteers:", volunteers)
-
+volunteers = data.volunteers || [];
 const volunteerTable = document.getElementById("volunteerTableBody");
 
 if (volunteerTable) {
@@ -3825,12 +3787,12 @@ ${
 
     } catch(error) {
 
-        console.log(
-            "Volunteer loading error:",
-            error
-        );
+    console.error(
+        "Volunteer loading error:",
+        error
+    );
 
-    }
+}
 }
 
 
@@ -3838,21 +3800,16 @@ async function loadStudents() {
 
     try {
 
-        const response = await fetch(
-            "https://punyamitra-backend.onrender.com/students"
-        );
+        const response = await fetch(`${API}/students`);
 
         const data = await response.json();
 
         students = Array.isArray(data)
             ? data
             : (data.students || []);
-
-        console.log("Students loaded:", students);
-
     } catch(error) {
 
-        console.log(error);
+        console.error(error);
 
     }
 }
@@ -3861,21 +3818,16 @@ async function loadFarmers() {
 
     try {
 
-        const response = await fetch(
-            "https://punyamitra-backend.onrender.com/farmers"
-        );
+        const response = await fetch(`${API}/farmers`);
 
         const data = await response.json();
 
         farmers = Array.isArray(data)
             ? data
             : (data.farmers || []);
-
-        console.log("Farmers loaded:", farmers);
-
     } catch(error) {
 
-        console.log(error);
+        console.error(error);
 
     }
 }
@@ -3907,7 +3859,7 @@ async function deleteAgent(agentId) {
 
     } catch(error) {
 
-        console.log(error);
+        console.error(error);
 
     }
 
@@ -3946,7 +3898,7 @@ async function deleteVolunteer(id) {
 
     } catch (error) {
 
-        console.log(error);
+        console.error(error);
 
         alert("Server Error");
     }
@@ -3984,11 +3936,11 @@ async function editVolunteer(id) {
 
             alert("Volunteer updated successfully");
 
-            volunteers = volunteers.map(v =>
-                v._id === id
-                    ? { ...v, name, email }
-                    : v
-            );
+           volunteers = volunteers.map(v =>
+    v._id === id
+        ? { ...v, name, email }
+        : v
+);
 
             renderVolunteers();
 
@@ -4002,7 +3954,7 @@ async function editVolunteer(id) {
 
     } catch (error) {
 
-        console.log(error);
+        console.error(error);
 
         alert("Server error");
 
@@ -4038,70 +3990,6 @@ function sendWhatsApp(phone) {
     );
 }
 
-// async function loadContactNotifications(){
-
-//     try{
-
-//         const response =
-//             await fetch("https://punyamitra-backend.onrender.com/api/contact");
-
-//         const data =
-//             await response.json();
-
-//         if(!data.success) return;
-
-//         const messages =
-//             data.messages || [];
-
-//         // UPDATE BADGE
-//         document.getElementById(
-//             "notifBadge"
-//         ).innerText =
-//             messages.length;
-
-//         // SHOW NOTIFICATIONS
-//         const container =
-//             document.getElementById(
-//                 "contactNotifications"
-//             );
-
-//         container.innerHTML = messages
-//         .slice(0,5)
-//         .map(msg => `
-
-//             <div class="notification-item">
-
-//                 <i class="fas fa-envelope"></i>
-
-//                 <div>
-
-//                     <strong>
-//                         ${msg.name}
-//                     </strong>
-
-//                     sent a message
-
-//                     <br>
-
-//                     <small>
-//                         ${msg.subject || ''}
-//                     </small>
-
-//                 </div>
-
-//             </div>
-
-//         `).join("");
-
-//     } catch(error){
-
-//         console.log(
-//             "Notification error:",
-//             error
-//         );
-//     }
-// }
-
 function toggleMessageMenu(event){
 
     event.stopPropagation();
@@ -4110,8 +3998,6 @@ function toggleMessageMenu(event){
         document.getElementById(
             "messageMenu"
         );
-
-    console.log(menu);
 
     if(menu.style.display === "block"){
 
@@ -4152,6 +4038,7 @@ async function refreshAllData() {
     await loadMembers();
 
 }
+    
 
 </script>
 
